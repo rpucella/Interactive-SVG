@@ -1,0 +1,16 @@
+{
+    _init: [red,blue,green],
+
+    red: {click: {show: [back], 
+        	  hide: [red]} },
+
+    blue: {click: {show: [back], 
+		   hide: [blue]} },
+
+    green: {click: {show: [back], 
+		    hide: [green]} },
+
+    back: {click: {show: [red,blue,gree], 
+		   hide: [back]} }
+}
+    
