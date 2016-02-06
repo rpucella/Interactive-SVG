@@ -2,15 +2,20 @@
     "_init": ["red","blue","green"],
     
     "red": {"click": {"show": ["back"], 
-        	      "hide": ["red"]} },
+        	      "hide": ["red","text_red"] },
+	    "hover": ["text_red"] },
     
     "blue": {"click": {"show": ["back"], 
-		       "hide": ["blue"]} },
+		       "hide": ["blue","text_blue"]},
+	     "hover": ["text_blue"] },
     
     "green": {"click": {"show": ["back"], 
-			"hide": ["green"]} },
+			"hide": ["green","text_green"]},
+	      "hover": ["text_green"] },
     
     "back": {"click": {"show": ["red","blue","green"], 
 		       "hide": ["back"]} }
+
+		       
 }
     
