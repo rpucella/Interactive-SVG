@@ -1,0 +1,12 @@
+{
+    "_init": ["base","col1","col2","col3","col4"],
+    "col1": {"click": {"hide": ["col2","col3","col4"]},
+	     "hover": ["hover1"]},
+    "col2": {"click": {"hide": ["col1","col3","col4"]},
+	     "hover": ["hover2"]},
+    "col3": {"click": {"hide": ["col1","col2","col4"]},
+	     "hover": ["hover3"]},
+    "col4": {"click": {"hide": ["col1","col2","col3"]},
+	     "hover": ["hover4"]}
+    
+}

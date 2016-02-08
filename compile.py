@@ -27,7 +27,7 @@ def load_instructions (instrfile):
 
 xmlns_svg = "http://www.w3.org/2000/svg"
 
-def main (svgfile, insfile):
+def main (svgfile, insfile,frame):
     ns = {"svg":"http://www.w3.org/2000/svg"}
     print >>sys.stderr, "reading SVG [{}]".format(svgfile)
     tree = ET.parse(svgfile)
@@ -59,6 +59,8 @@ def main (svgfile, insfile):
                                                                                                                                hide_ids = hide_ids,
                                                                                                                                setup_click=setup_click,
                                                                                                                                setup_hover=setup_hover)
+        if frame:
+            print "<html><body>"
         print "<div>"
         # suppress namespace for svg
         ET.register_namespace('',xmlns_svg)
@@ -67,6 +69,8 @@ def main (svgfile, insfile):
         print script
         print "</script>"
         print "</div>"
+        if frame:
+            print "</body></html>"
 
 
 def get_click_show (instr,id):
@@ -96,6 +100,8 @@ def mk_hide_ids (ids):
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
-        print "Usage: compile <svg> [<instructions>]"
+        print "Usage: compile <svg> [<instructions>] [-frame]"
     else:
-        main(sys.argv[1],sys.argv[2] if len(sys.argv)>2 else None)
+        main(sys.argv[1],
+             sys.argv[2] if len(sys.argv)>2 else None,
+             len(sys.argv)>3 and sys.argv[3]=="-frame")
