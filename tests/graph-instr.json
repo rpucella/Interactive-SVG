@@ -1,12 +1,29 @@
 {
-    "_init": ["base","col1","col2","col3","col4"],
-    "col1": {"click": {"hide": ["col2","col3","col4"]},
-	     "hover": ["hover1"]},
-    "col2": {"click": {"hide": ["col1","col3","col4"]},
-	     "hover": ["hover2"]},
-    "col3": {"click": {"hide": ["col1","col2","col4"]},
-	     "hover": ["hover3"]},
-    "col4": {"click": {"hide": ["col1","col2","col3"]},
-	     "hover": ["hover4"]}
+    "_init": ["bg","bar1","bar2","bar3","bar4"],
+    "bar1": {"click": {"hide": ["bar1","bar2","bar3","bar4"],
+		       "show": ["stackbar1","legend"]},
+	     "hover": ["tip1"]},
+    "bar2": {"click": {"hide": ["bar1","bar2","bar3","bar4"],
+		       "show": ["stackbar2","legend"]},
+	     "hover": ["tip2"]},
+    "bar3": {"click": {"hide": ["bar1","bar2","bar3","bar4"],
+		       "show": ["stackbar3","legend"]},
+	     "hover": ["tip3"]},
+    "bar4": {"click": {"hide": ["bar1","bar2","bar3","bar4"],
+		       "show": ["stackbar4","legend"]},
+	     "hover": ["tip4"]},
+    "stackbar1": {"click": {"show": ["bar1","bar2","bar3","bar4"],
+			    "hide": ["stackbar1","legend"]},
+		  "hover": ["tip1"]},
+    "stackbar2": {"click": {"show": ["bar1","bar2","bar3","bar4"],
+			    "hide": ["stackbar2","legend"]},
+		  "hover": ["tip2"]},
+    "stackbar3": {"click": {"show": ["bar1","bar2","bar3","bar4"],
+			    "hide": ["stackbar3","legend"]},
+		  "hover": ["tip3"]},
+    "stackbar4": {"click": {"show": ["bar1","bar2","bar3","bar4"],
+			    "hide": ["stackbar4","legend"]},
+		  "hover": ["tip4"]}
+
     
 }

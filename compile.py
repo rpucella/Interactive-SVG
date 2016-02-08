@@ -93,10 +93,12 @@ def get_hover (instr,id):
 
 
 def mk_show_ids (ids):
-    return " ".join([ "element_{id}.style.visibility='visible';".format(id=id) for id in ids])
+    # return " ".join([ "element_{id}.style.visibility='visible';".format(id=id) for id in ids])
+    return " ".join([ "element_{id}.style.display='block';".format(id=id) for id in ids])
 
 def mk_hide_ids (ids):
-    return " ".join([ "element_{id}.style.visibility='hidden';".format(id=id) for id in ids])
+    # return " ".join([ "element_{id}.style.visibility='hidden';".format(id=id) for id in ids])
+    return " ".join([ "element_{id}.style.display='none';".format(id=id) for id in ids])
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:

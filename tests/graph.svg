@@ -1,17 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Generator: Adobe Illustrator 16.0.0, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
-<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="800px"
-	 height="600px" viewBox="0 0 800 600" enable-background="new 0 0 800 600" xml:space="preserve">
-<g id="base">
+<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+	 width="501.333px" height="412.005px" viewBox="33.166 31.165 501.333 412.005"
+	 enable-background="new 33.166 31.165 501.333 412.005" xml:space="preserve">
+<g id="bg">
 	<g>
 		<line fill="none" stroke="#000000" stroke-miterlimit="10" x1="91" y1="386.5" x2="512" y2="386.5"/>
 		<g>
 			<g>
 				<line fill="none" stroke="#000000" stroke-miterlimit="10" x1="91.5" y1="387" x2="91.5" y2="380"/>
 				<line fill="none" stroke="#000000" stroke-miterlimit="10" x1="512.5" y1="387" x2="512.5" y2="380"/>
-			</g>
-			<g>
 			</g>
 		</g>
 	</g>
@@ -40,71 +39,100 @@
 				<line fill="none" stroke="#000000" stroke-miterlimit="10" x1="91" y1="142.5" x2="102" y2="142.5"/>
 				<line fill="none" stroke="#000000" stroke-miterlimit="10" x1="91" y1="107.5" x2="102" y2="107.5"/>
 			</g>
-			<g>
-			</g>
-		</g>
-	</g>
-	<g>
-		<g>
-		</g>
-		<g>
-		</g>
-		<g>
-		</g>
-		<g>
 		</g>
 	</g>
 </g>
-<g id="col1">
+<g id="bar1">
+	<g>
+		<g>
+			<rect x="136.5" y="316.5" stroke="#000000" stroke-miterlimit="10" width="76" height="70"/>
+		</g>
+	</g>
 	<g>
 		<g>
 			<rect x="136.5" y="316.5" stroke="#000000" stroke-miterlimit="10" width="76" height="70"/>
 		</g>
 	</g>
 </g>
-<g id="col2">
+<g id="bar2">
 	<g>
 		<g>
 			<rect x="221.5" y="247.5" fill="#DFDFDF" stroke="#000000" stroke-miterlimit="10" width="75" height="139"/>
 		</g>
 	</g>
 </g>
-<g id="col3">
+<g id="bar3">
 	<g>
 		<g>
 			<rect x="305.5" y="177.5" fill="#808080" stroke="#000000" stroke-miterlimit="10" width="75" height="209"/>
 		</g>
 	</g>
 </g>
-<g id="col4">
+<g id="bar4">
 	<g>
 		<g>
 			<rect x="389.5" y="106.5" fill="#404040" stroke="#000000" stroke-miterlimit="10" width="76" height="279"/>
 		</g>
 	</g>
 </g>
-<g id="hover1">
-	<rect x="142" y="260" fill="#00AEEF" width="64" height="39"/>
-	<polygon fill="#00AEEF" points="185.833,295 174.5,314.629 163.167,295 	"/>
-	<rect x="157" y="276.401" fill="none" width="33" height="16.5"/>
-	<text transform="matrix(1 0 0 1 163.5103 284.9199)" font-family="'MyriadPro-Regular'" font-size="12">XYZ</text>
+<g id="tip1" display="none">
+	<rect x="142" y="260" display="inline" fill="#00AEEF" width="64" height="39"/>
+	<polygon display="inline" fill="#00AEEF" points="185.833,295 174.5,314.629 163.167,295 	"/>
+	<rect x="157" y="276.401" display="inline" fill="none" width="33" height="16.5"/>
+	<text transform="matrix(1 0 0 1 163.5103 284.9199)" display="inline" font-family="'MyriadPro-Regular'" font-size="12">XYZ</text>
 </g>
-<g id="hover2">
-	<rect x="227" y="190" fill="#00AEEF" width="64" height="39"/>
-	<polygon fill="#00AEEF" points="270.833,225 259.5,244.629 248.167,225 	"/>
-	<rect x="242" y="206.401" fill="none" width="33" height="16.5"/>
-	<text transform="matrix(1 0 0 1 248.5103 214.9199)" font-family="'MyriadPro-Regular'" font-size="12">XYZ</text>
+<g id="tip2" display="none">
+	<rect x="227" y="190" display="inline" fill="#00AEEF" width="64" height="39"/>
+	<polygon display="inline" fill="#00AEEF" points="270.833,225 259.5,244.629 248.167,225 	"/>
+	<rect x="242" y="206.401" display="inline" fill="none" width="33" height="16.5"/>
+	<text transform="matrix(1 0 0 1 248.5103 214.9199)" display="inline" font-family="'MyriadPro-Regular'" font-size="12">XYZ</text>
 </g>
-<g id="hover3">
-	<rect x="311" y="120" fill="#00AEEF" width="64" height="39"/>
-	<polygon fill="#00AEEF" points="354.833,155 343.5,174.629 332.167,155 	"/>
-	<rect x="326" y="136.401" fill="none" width="33" height="16.5"/>
-	<text transform="matrix(1 0 0 1 332.5103 144.9199)" font-family="'MyriadPro-Regular'" font-size="12">XYZ</text>
+<g id="tip3" display="none">
+	<rect x="311" y="120" display="inline" fill="#00AEEF" width="64" height="39"/>
+	<polygon display="inline" fill="#00AEEF" points="354.833,155 343.5,174.629 332.167,155 	"/>
+	<rect x="326" y="136.401" display="inline" fill="none" width="33" height="16.5"/>
+	<text transform="matrix(1 0 0 1 332.5103 144.9199)" display="inline" font-family="'MyriadPro-Regular'" font-size="12">XYZ</text>
 </g>
-<g id="hover4">
-	<rect x="396" y="48" fill="#00AEEF" width="64" height="39"/>
-	<polygon fill="#00AEEF" points="439.833,83 428.5,102.629 417.167,83 	"/>
-	<rect x="411" y="64.401" fill="none" width="33" height="16.5"/>
-	<text transform="matrix(1 0 0 1 417.5098 72.9199)" font-family="'MyriadPro-Regular'" font-size="12">XYZ</text>
+<g id="tip4" display="none">
+	<rect x="396" y="47.9" display="inline" fill="#00AEEF" width="64" height="39"/>
+	<polygon display="inline" fill="#00AEEF" points="439.833,82.9 428.5,102.529 417.167,82.9 	"/>
+	<rect x="411" y="64.301" display="inline" fill="none" width="33" height="16.5"/>
+	<text transform="matrix(1 0 0 1 417.5098 72.8203)" display="inline" font-family="'MyriadPro-Regular'" font-size="12">XYZ</text>
+</g>
+<g id="stackbar1" display="none">
+	<g display="inline">
+		<g>
+			<rect x="136.5" y="316.5" stroke="#000000" stroke-miterlimit="10" width="76" height="70"/>
+		</g>
+	</g>
+	<rect x="136.5" y="316.5" display="inline" fill="#FF0000" width="76" height="26.665"/>
+	<rect x="136.5" y="343.165" display="inline" fill="#00FF00" width="76" height="30"/>
+	<rect x="136.5" y="372.368" display="inline" fill="#FCEE21" width="76" height="13.335"/>
+</g>
+<g id="stackbar2" display="none">
+	<rect x="221" y="246.667" display="inline" fill="#FF0000" width="76" height="83.165"/>
+	<rect x="221" y="329.832" display="inline" fill="#00FF00" width="76" height="30"/>
+	<rect x="220.899" y="349.034" display="inline" fill="#FCEE21" width="76" height="36.466"/>
+</g>
+<g id="stackbar3" display="none">
+	<rect x="304.9" y="324.162" display="inline" fill="#FCEE21" width="76" height="61.55"/>
+	<rect x="305" y="247.5" display="inline" fill="#00FF00" width="76" height="76.662"/>
+	<rect x="305.3" y="177.272" display="inline" fill="#FF0000" width="76" height="76.458"/>
+</g>
+<g id="stackbar4" display="none">
+	<rect x="389.119" y="106.097" display="inline" fill="#FF0000" width="76.707" height="112.835"/>
+	<rect x="389.499" y="212.5" display="inline" fill="#00FF00" width="76.005" height="76.662"/>
+	<rect x="389.473" y="286.025" display="inline" fill="#FCEE21" width="76" height="99.774"/>
+</g>
+<g id="legend" display="none">
+	<rect x="206.167" y="409.17" display="inline" fill="#FF0000" width="15.333" height="12.667"/>
+	<rect x="230.167" y="410.136" display="inline" fill="none" width="37.333" height="11.333"/>
+	<text transform="matrix(1 0 0 1 230.1665 418.6563)" display="inline" font-family="'MyriadPro-Regular'" font-size="12">Red</text>
+	<rect x="266.833" y="409.17" display="inline" fill="#00FF00" width="15.333" height="12.667"/>
+	<rect x="290.833" y="410.136" display="inline" fill="none" width="37.333" height="11.333"/>
+	<text transform="matrix(1 0 0 1 290.833 418.6563)" display="inline" font-family="'MyriadPro-Regular'" font-size="12">Green</text>
+	<rect x="338.166" y="409.17" display="inline" fill="#FCEE21" width="15.333" height="12.666"/>
+	<rect x="362.166" y="410.135" display="inline" fill="none" width="37.333" height="11.334"/>
+	<text transform="matrix(1 0 0 1 362.166 418.6563)" display="inline" font-family="'MyriadPro-Regular'" font-size="12">Yellow</text>
 </g>
 </svg>
