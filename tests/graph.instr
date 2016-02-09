@@ -1,49 +1,36 @@
-// interaction instructions for simple chart
 
-click bar1 -> show stackbar1, legend
-click bar1 -> hide bar1, bar2, bar3, bar4
+# interaction instructions for simple bar chart with stacked bar drill downs
+
+click bar1 -> show stackbar1 legend
+click bar1 -> hide bar1 bar2 bar3 bar4
+
+click bar2 -> show stackbar2 legend
+click bar2 -> hide bar1 bar2 bar3 bar4
+
+click bar3 -> show stackbar3 legend
+click bar3 -> hide bar1 bar2 bar3 bar4
+
+click bar4 -> show stackbar4 legend
+click bar4 -> hide bar1 bar2 bar3 bar4
 
 hover bar1 -> show tip1
-
-click bar2 -> show stackbar2, legend
-click bar2 -> hide bar1, bar2, bar3, bar4
-
 hover bar2 -> show tip2
-
-click bar3 -> show stackbar3, legend
-click bar3 -> hide bar1, bar2, bar3, bar4
-
 hover bar3 -> show tip3
+hover bar4 -> show tip4
 
-click bar4 -> show stackbar4, legend
-click bar4 -> hide bar1, bar2, bar3, bar4
+click stackbar1 -> show bar1 bar2 bar3 bar4
+click stackbar1 -> hide stackbar1 legend
 
-hover bar4 -> show tip3
+click stackbar2 -> show bar1 bar2 bar3 bar4
+click stackbar2 -> hide stackbar2 legend
 
-click stackbar1 -> show bar1
-click stackbar1 -> show bar2
-click stackbar1 -> show bar3
-click stackbar1 -> show bar4
+click stackbar3 -> show bar1 bar2 bar3 bar4
+click stackbar3 -> hide stackbar3 legend
 
-click stackbar1 -> hide stackbar1, legend
+click stackbar4 -> show bar1 bar2 bar3 bar4
+click stackbar4 -> hide stackbar4 legend
 
-click stackbar2 -> show bar1
-click stackbar2 -> show bar2
-click stackbar2 -> show bar3
-click stackbar2 -> show bar4
-
-click stackbar2 -> hide stackbar2, legend
-
-click stackbar3 -> show bar1
-click stackbar3 -> show bar2
-click stackbar3 -> show bar3
-click stackbar3 -> show bar4
-
-click stackbar3 -> hide stackbar3, legend
-
-click stackbar4 -> show bar1
-click stackbar4 -> show bar2
-click stackbar4 -> show bar3
-click stackbar4 -> show bar4
-
-click stackbar4 -> hide stackbar4, legend
+hover stackbar1 -> show tip1
+hover stackbar2 -> show tip2
+hover stackbar3 -> show tip3
+hover stackbar4 -> show tip4

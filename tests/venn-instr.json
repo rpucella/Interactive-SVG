@@ -1,6 +1,4 @@
 {
-    "_init": ["red","blue","green"],
-    
     "red": {"click": {"show": ["back"], 
         	      "hide": ["red","text_red"] },
 	    "hover": ["text_red"] },

@@ -6,6 +6,7 @@
 import sys
 import xml.etree.ElementTree as ET
 import json
+import re
 
 def available_ids (svg):
     return [(elt.get("id"),elt.tag) for elt in svg.findall(".//*[@id]")]
@@ -19,10 +20,45 @@ def show_available_ids (ids):
     else:
         print >>sys.stderr, "no available IDs"
 
-def load_instructions (instrfile):
+def parse_instructions (instrfile):
+    print >>sys.stderr, "parsing interaction instructions"
+    instrs = {}
     with open(instrfile,"r") as f:
-        instrs = json.load(f)
+        for line in f:
+            if "#" in line:
+                line = line[:line.find("#")]
+            line = line.strip()
+            if line:
+                ##print >>sys.stderr, line
+                if "->" not in line:
+                    raise Exception("instruction line has no ->")
+                words = re.split("\s+",line)
+                ##print >>sys.stderr, words
+                # FIXME - no error checking for now...
+                command = words[0]
+                arg1 = words[1]
+                if words[2] != "->":
+                    raise Exception("misplaced -> on instruction line")
+                command2 = words[3]
+                args = words[4:]
+                ##print >>sys.stderr, args
+                if arg1 not in instrs:
+                    instrs[arg1] = {}
+                if command not in instrs[arg1]:
+                    instrs[arg1][command] = {}
+                if command == "hover":
+                    instrs[arg1][command] = args
+                else:
+                    instrs[arg1][command][command2] = args
     ##print >>sys.stderr, instrs
+    return instrs
+
+def load_instructions (instrfile):
+    try:
+        with open(instrfile,"r") as f:
+            instrs = json.load(f)
+    except: 
+        instrs = parse_instructions(instrfile)
     return instrs
 
 xmlns_svg = "http://www.w3.org/2000/svg"
@@ -37,15 +73,15 @@ def main (svgfile, insfile,frame):
     ids = available_ids(svg)
     show_available_ids(ids)
     if insfile:
-        print >>sys.stderr, "reading interactions instructions [{}]".format(insfile)
+        print >>sys.stderr, "reading interaction instructions [{}]".format(insfile)
         instr = load_instructions(insfile)
         # should do some sort of validation here -- don't bother for now
         # should probably rename the ids to something JS-friendly
         print >>sys.stderr, "generating output HTML"
         init_shown_ids = instr["_init"] if "_init" in instr else []
         bind_ids = "".join([ "var element_{id} = document.getElementById('{id}');".format(id=id) for (id,_) in ids])
-        show_ids = mk_show_ids(init_shown_ids)
-        hide_ids = mk_hide_ids([ id for (id,_) in ids if id not in init_shown_ids])
+        show_ids = "" ## mk_show_ids(init_shown_ids)
+        hide_ids = "" ## mk_hide_ids([ id for (id,_) in ids if id not in init_shown_ids])
         setup_click = "".join([ "element_{id}.addEventListener('click',function() {{ {show}{hide} }});".format(id=id,
                                                                                                                     show=mk_show_ids(get_click_show(instr,id)),
                                                                                                                     hide=mk_hide_ids(get_click_hide(instr,id)))
