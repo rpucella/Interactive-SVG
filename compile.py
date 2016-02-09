@@ -83,18 +83,18 @@ def main (svgfile, insfile,frame):
         show_ids = "" ## mk_show_ids(init_shown_ids)
         hide_ids = "" ## mk_hide_ids([ id for (id,_) in ids if id not in init_shown_ids])
         setup_click = "".join([ "element_{id}.addEventListener('click',function() {{ {show}{hide} }});".format(id=id,
-                                                                                                                    show=mk_show_ids(get_click_show(instr,id)),
-                                                                                                                    hide=mk_hide_ids(get_click_hide(instr,id)))
+                                                                                                               show=mk_show_ids(get_click_show(instr,id)),
+                                                                                                               hide=mk_hide_ids(get_click_hide(instr,id)))
                                      for (id,_) in ids if id in instr])
         setup_hover = "".join([ "element_{id}.addEventListener('mouseenter',function() {{ {show} }}); element_{id}.addEventListener('mouseleave',function() {{ {hide} }});".format(id=id,
-                                                                                                                                                                                  show=mk_show_ids(get_hover(instr,id)),
-                                                                                                                                                                                  hide=mk_hide_ids(get_hover(instr,id)))
+                                                                                                                                                                                   show=mk_show_ids(get_hover(instr,id)),
+                                                                                                                                                                                   hide=mk_hide_ids(get_hover(instr,id)))
                                 for (id,_) in ids if id in instr])
         script = """window.addEventListener('load',function() {{ {bind_ids}{show_ids}{hide_ids}{setup_click}{setup_hover} }});""".format(bind_ids = bind_ids,
-                                                                                                                               show_ids = show_ids,
-                                                                                                                               hide_ids = hide_ids,
-                                                                                                                               setup_click=setup_click,
-                                                                                                                               setup_hover=setup_hover)
+                                                                                                                                         show_ids = show_ids,
+                                                                                                                                         hide_ids = hide_ids,
+                                                                                                                                         setup_click=setup_click,
+                                                                                                                                         setup_hover=setup_hover)
         if frame:
             print "<html><body>"
         print "<div>"

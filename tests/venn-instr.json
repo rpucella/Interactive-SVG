@@ -1,19 +1,16 @@
 {
-    "red": {"click": {"show": ["back"], 
-        	      "hide": ["red","text_red"] },
-	    "hover": ["text_red"] },
+    "fantomas_red": {"click": {"show": ["fantomas_back"], 
+        		       "hide": ["fantomas_red","fantomas_text_red"] },
+		     "hover": ["fantomas_text_red"] },
     
-    "blue": {"click": {"show": ["back"], 
-		       "hide": ["blue","text_blue"]},
-	     "hover": ["text_blue"] },
+    "fantomas_blue": {"click": {"show": ["fantomas_back"], 
+				"hide": ["fantomas_blue","fantomas_text_blue"]},
+		      "hover": ["fantomas_text_blue"] },
     
-    "green": {"click": {"show": ["back"], 
-			"hide": ["green","text_green"]},
-	      "hover": ["text_green"] },
+    "fantomas_green": {"click": {"show": ["fantomas_back"], 
+				 "hide": ["fantomas_green","fantomas_text_green"]},
+		       "hover": ["fantomas_text_green"] },
     
-    "back": {"click": {"show": ["red","blue","green"], 
-		       "hide": ["back"]} }
-
-		       
+    "fantomas_back": {"click": {"show": ["fantomas_red","fantomas_blue","fantomas_green"], 
+				"hide": ["fantomas_back"]} }
 }
-    
