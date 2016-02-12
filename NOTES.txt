@@ -1,0 +1,54 @@
+
+Possible syntax:
+
+when click foo
+  -> hide x y z 
+  -> show x y z
+  -> dim 10% x y z 
+
+
+E.g.
+
+# this should nicely control
+# that there is at most
+# one stacked bar showing (and the legend)
+# and that clicking on a stacked bar 
+# removes it and the legend
+
+when click bar1 
+  -> hide stackbar1 stackbar2 stackbar3 stackbar4 legend
+  -> show stackbar1 legend
+
+when click bar2 
+  -> hide stackbar1 stackbar2 stackbar3 stackbar4 legend
+  -> show stackbar2 legend
+
+when click bar3 
+  -> hide stackbar1 stackbar2 stackbar3 stackbar4 legend
+  -> show stackbar3 legend
+
+click bar4 
+  -> hide stackbar1 stackbar2 stackbar3 stackbar4 legend
+  -> show stackbar4 legend
+
+when hover bar1 -> show tip1
+when hover bar2 -> show tip2
+when hover bar3 -> show tip3
+when hover bar4 -> show tip4
+
+when click stackbar1 
+  -> hide stackbar1 legend
+
+when click stackbar2 
+  -> hide stackbar2 legend
+
+when click stackbar3 
+  -> hide stackbar3 legend
+
+when click stackbar4 
+  -> hide stackbar4 legend
+
+when hover stackbar1 -> show tip1
+when hover stackbar2 -> show tip2
+when hover stackbar3 -> show tip3
+when hover stackbar4 -> show tip4

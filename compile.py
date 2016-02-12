@@ -7,6 +7,7 @@ import sys
 import xml.etree.ElementTree as ET
 import json
 import re
+import uuid
 
 def available_ids (svg):
     return [(elt.get("id"),elt.tag) for elt in svg.findall(".//*[@id]")]
@@ -75,18 +76,29 @@ def main (svgfile, insfile,frame):
     if insfile:
         print >>sys.stderr, "reading interaction instructions [{}]".format(insfile)
         instr = load_instructions(insfile)
+
+        # generate uuid
+        uid = uuid.uuid4().hex
+        print >>sys.stderr, "uuid",uid
+        prefix = "fantomas_{}".format(uid)
+        prefix_all_ids(svg,prefix)
+
+        ##ET.register_namespace('',xmlns_svg)
+        ##print >>sys.stderr, ET.tostring(svg)
+        ##return
+
         # should do some sort of validation here -- don't bother for now
         # should probably rename the ids to something JS-friendly
         print >>sys.stderr, "generating output HTML"
         init_shown_ids = instr["_init"] if "_init" in instr else []
-        bind_ids = "".join([ "var element_{id} = document.getElementById('{id}');".format(id=id) for (id,_) in ids])
+        bind_ids = "".join([ "var fantomas_element_{id} = document.getElementById('{p}_{id}');".format(p=prefix,id=id) for (id,_) in ids])
         show_ids = "" ## mk_show_ids(init_shown_ids)
         hide_ids = "" ## mk_hide_ids([ id for (id,_) in ids if id not in init_shown_ids])
-        setup_click = "".join([ "element_{id}.addEventListener('click',function() {{ {show}{hide} }});".format(id=id,
+        setup_click = "".join([ "fantomas_element_{id}.addEventListener('click',function() {{ {show}{hide} }});".format(id=id,
                                                                                                                show=mk_show_ids(get_click_show(instr,id)),
                                                                                                                hide=mk_hide_ids(get_click_hide(instr,id)))
                                      for (id,_) in ids if id in instr])
-        setup_hover = "".join([ "element_{id}.addEventListener('mouseenter',function() {{ {show} }}); element_{id}.addEventListener('mouseleave',function() {{ {hide} }});".format(id=id,
+        setup_hover = "".join([ "fantomas_element_{id}.addEventListener('mouseenter',function() {{ {show} }}); fantomas_element_{id}.addEventListener('mouseleave',function() {{ {hide} }});".format(id=id,
                                                                                                                                                                                    show=mk_show_ids(get_hover(instr,id)),
                                                                                                                                                                                    hide=mk_hide_ids(get_hover(instr,id)))
                                 for (id,_) in ids if id in instr])
@@ -109,6 +121,13 @@ def main (svgfile, insfile,frame):
             print "</body></html>"
 
 
+def prefix_all_ids (svg,prefix):
+
+    for elt in svg.findall(".//*[@id]"):
+        elt.set("id","{}_{}".format(prefix,elt.get("id")))
+
+
+
 def get_click_show (instr,id):
     if "click" in instr[id] and "show" in instr[id]["click"]:
         return instr[id]["click"]["show"]
@@ -129,12 +148,12 @@ def get_hover (instr,id):
 
 
 def mk_show_ids (ids):
-    # return " ".join([ "element_{id}.style.visibility='visible';".format(id=id) for id in ids])
-    return " ".join([ "element_{id}.style.display='block';".format(id=id) for id in ids])
+    # return " ".join([ "fantomas_element_{id}.style.visibility='visible';".format(id=id) for id in ids])
+    return " ".join([ "fantomas_element_{id}.style.display='block';".format(id=id) for id in ids])
 
 def mk_hide_ids (ids):
-    # return " ".join([ "element_{id}.style.visibility='hidden';".format(id=id) for id in ids])
-    return " ".join([ "element_{id}.style.display='none';".format(id=id) for id in ids])
+    # return " ".join([ "fantomas_element_{id}.style.visibility='hidden';".format(id=id) for id in ids])
+    return " ".join([ "fantomas_element_{id}.style.display='none';".format(id=id) for id in ids])
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
@@ -143,3 +162,5 @@ if __name__ == "__main__":
         main(sys.argv[1],
              sys.argv[2] if len(sys.argv)>2 else None,
              len(sys.argv)>3 and sys.argv[3]=="-frame")
+else:
+    print "(loaded)"
