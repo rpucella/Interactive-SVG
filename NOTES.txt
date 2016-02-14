@@ -27,7 +27,7 @@ when click bar3
   -> hide stackbar1 stackbar2 stackbar3 stackbar4 legend
   -> show stackbar3 legend
 
-click bar4 
+when click bar4 
   -> hide stackbar1 stackbar2 stackbar3 stackbar4 legend
   -> show stackbar4 legend
 
