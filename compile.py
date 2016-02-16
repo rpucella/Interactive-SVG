@@ -64,7 +64,7 @@ def load_instructions (instrfile):
 
 xmlns_svg = "http://www.w3.org/2000/svg"
 
-def main (svgfile, insfile,frame):
+def main (svgfile, insfile,frame,noload):
     ns = {"svg":"http://www.w3.org/2000/svg"}
     print >>sys.stderr, "reading SVG [{}]".format(svgfile)
     tree = ET.parse(svgfile)
@@ -102,11 +102,15 @@ def main (svgfile, insfile,frame):
                                                                                                                                                                                    show=mk_show_ids(get_hover(instr,id)),
                                                                                                                                                                                    hide=mk_hide_ids(get_hover(instr,id)))
                                 for (id,_) in ids if id in instr])
-        script = """window.addEventListener('load',function() {{ {bind_ids}{show_ids}{hide_ids}{setup_click}{setup_hover} }});""".format(bind_ids = bind_ids,
-                                                                                                                                         show_ids = show_ids,
-                                                                                                                                         hide_ids = hide_ids,
-                                                                                                                                         setup_click=setup_click,
-                                                                                                                                         setup_hover=setup_hover)
+        if noload:
+            script_base = """(function() {{ {bind_ids}{show_ids}{hide_ids}{setup_click}{setup_hover} }})();"""
+        else:
+            script_base = """window.addEventListener('load',function() {{ {bind_ids}{show_ids}{hide_ids}{setup_click}{setup_hover} }});"""
+        script = script_base.format(bind_ids = bind_ids,
+                                    show_ids = show_ids,
+                                    hide_ids = hide_ids,
+                                    setup_click=setup_click,
+                                    setup_hover=setup_hover)
         if frame:
             print "<html><body>"
         print "<div>"
@@ -157,10 +161,11 @@ def mk_hide_ids (ids):
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
-        print "Usage: compile <svg> [<instructions>] [-frame]"
+        print "Usage: compile <svg> [<instructions>] [-frame] [-noload]"
     else:
         main(sys.argv[1],
              sys.argv[2] if len(sys.argv)>2 else None,
-             len(sys.argv)>3 and sys.argv[3]=="-frame")
+             len(sys.argv)>3 and "-frame" in sys.argv[3:],
+             len(sys.argv)>3 and "-noload" in sys.argv[3:])
 else:
     print "(loaded)"
