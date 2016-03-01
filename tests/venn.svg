@@ -1,15 +1,15 @@
 <?xml version="1.0"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="12cm" height="12cm">
    <g style="fill-opacity:0.7; stroke:black; stroke-width:0.1cm;">
-     <circle id="fantomas_red" cx="6cm" cy="2cm" r="100" style="fill:red;"
+     <circle id="red" cx="6cm" cy="2cm" r="100" style="fill:red;"
                      transform="translate(0,50)" />
-     <circle id="fantomas_blue" cx="6cm" cy="2cm" r="100" style="fill:blue;"
+     <circle id="blue" cx="6cm" cy="2cm" r="100" style="fill:blue;"
                      transform="translate(70,150)" />
-     <circle id="fantomas_green" cx="6cm" cy="2cm" r="100" style="fill:green;"
+     <circle id="green" cx="6cm" cy="2cm" r="100" style="fill:green;"
                      transform="translate(-70,150)"/>
-     <rect id="fantomas_back" x="400" y="20" width="20" height="10" style="fill:black; display:none;"/>
-     <text id="fantomas_text_red" x="20" y="40" style="font-size: 2em; text-anchor: start; fill:red; stroke:none; display:none;">RED</text>
-     <text id="fantomas_text_blue" x="20" y="40" style="font-size: 2em; text-anchor: start; fill:blue; stroke:none; display:none;">BLUE</text>
-     <text id="fantomas_text_green" x="20" y="40" style="font-size: 2em; text-anchor: start; fill:green; stroke:none; display:none;">GREEN</text>
+     <rect id="back" x="400" y="20" width="20" height="10" style="fill:black; display:none;"/>
+     <text id="text_red" x="20" y="40" style="font-size: 2em; text-anchor: start; fill:red; stroke:none; display:none;">RED</text>
+     <text id="text_blue" x="20" y="40" style="font-size: 2em; text-anchor: start; fill:blue; stroke:none; display:none;">BLUE</text>
+     <text id="text_green" x="20" y="40" style="font-size: 2em; text-anchor: start; fill:green; stroke:none; display:none;">GREEN</text>
    </g>
 </svg>

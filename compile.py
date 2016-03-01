@@ -21,38 +21,71 @@ def show_available_ids (ids):
     else:
         print >>sys.stderr, "no available IDs"
 
+
 def parse_instructions (instrfile):
     print >>sys.stderr, "parsing interaction instructions"
     instrs = {}
+    instructions = []
     with open(instrfile,"r") as f:
+        current = ""
         for line in f:
             if "#" in line:
-                line = line[:line.find("#")]
-            line = line.strip()
+                line = line[:line.find("#")].strip()
             if line:
-                ##print >>sys.stderr, line
-                if "->" not in line:
-                    raise Exception("instruction line has no ->")
-                words = re.split("\s+",line)
-                ##print >>sys.stderr, words
-                # FIXME - no error checking for now...
-                command = words[0]
-                arg1 = words[1]
-                if words[2] != "->":
-                    raise Exception("misplaced -> on instruction line")
-                command2 = words[3]
-                args = words[4:]
-                ##print >>sys.stderr, args
-                if arg1 not in instrs:
-                    instrs[arg1] = {}
-                if command not in instrs[arg1]:
-                    instrs[arg1][command] = {}
-                if command == "hover":
-                    instrs[arg1][command] = args
-                else:
-                    instrs[arg1][command][command2] = args
-    ##print >>sys.stderr, instrs
+                if line.strip(): 
+                    current += " "+(line.strip())
+                elif current:
+                    instructions.append(current)
+                    current = ""
+        if current:
+            instructions.append(current)
+
+    for instr in instructions:
+        print >>sys.stderr, " ", instr.strip()
+
+    for instr in instructions:
+        parts = instr.split("->")
+
+        if len(parts) < 2: 
+            print >>sys.stderr,"Cannot parse instruction:"
+            print >>sys.stderr,"  ",instr.strip()
+            raise Exception("Parsing error")
+
+        (name,event) = parseEvent(parts[0])
+        for part in parts[1:]:
+            (action,targets) = parseAction(part)
+
+            if name not in instrs:
+                instrs[name] = {}
+            if event not in instrs[name]:
+                instrs[name][event] = {}
+            instrs[name][event][action] = targets
+    ##print >>sys.stderr,instrs
     return instrs
+
+
+
+def tokenize (s):
+    # really, should not break up strings "..." or '...'
+    return s.split()
+
+def parseEvent (s):
+    p = tokenize(s)
+    if len(p) != 2:
+        print >>sys.stderr,"Cannot parse event part of instruction:"
+        print >>sys.stderr,"  ",s
+        raise Exception("Parsing error")
+    return (p[1],p[0])
+
+def parseAction (s):
+    p = tokenize(s)
+    if len(p) < 1:
+        print >>sys.stderr,"Cannot parse action part of instruction:"
+        print >>sys.stderr,"  ",s
+        raise Exception("Parsing error")
+    return (p[0],p[1:])
+    
+
 
 def load_instructions (instrfile):
     try:
@@ -90,25 +123,27 @@ def main (svgfile, insfile,frame,noload):
         # should do some sort of validation here -- don't bother for now
         # should probably rename the ids to something JS-friendly
         print >>sys.stderr, "generating output HTML"
-        init_shown_ids = instr["_init"] if "_init" in instr else []
-        bind_ids = "".join([ "var fantomas_element_{id} = document.getElementById(\"{p}_{id}\");".format(p=prefix,id=id) for (id,_) in ids])
-        show_ids = "" ## mk_show_ids(init_shown_ids)
-        hide_ids = "" ## mk_hide_ids([ id for (id,_) in ids if id not in init_shown_ids])
-        setup_click = "".join([ "fantomas_element_{id}.addEventListener(\"click\",function() {{ {show}{hide} }});".format(id=id,
-                                                                                                               show=mk_show_ids(get_click_show(instr,id)),
-                                                                                                               hide=mk_hide_ids(get_click_hide(instr,id)))
-                                     for (id,_) in ids if id in instr])
-        setup_hover = "".join([ "fantomas_element_{id}.addEventListener(\"mouseenter\",function() {{ {show} }}); fantomas_element_{id}.addEventListener(\"mouseleave\",function() {{ {hide} }});".format(id=id,
-                                                                                                                                                                                   show=mk_show_ids(get_hover(instr,id)),
-                                                                                                                                                                                   hide=mk_hide_ids(get_hover(instr,id)))
+        ## init_shown_ids = instr["_init"] if "_init" in instr else []
+
+        setup = "var e=function(i){return document.getElementById(i);};var s=function(i){i.style.display=\"block\";};var h=function(i){i.style.display=\"none\";};"
+
+        bind_ids = "".join([ "var fantomas_{id} = e(\"{p}_{id}\");".format(p=prefix,id=id) for (id,_) in ids])
+        setup_click = "".join([ "fantomas_{id}.addEventListener(\"click\",function() {{ {show}{hide} }});"
+                                  .format(id=id,
+                                          show=mk_show_ids(get_click_show(instr,id)),
+                                          hide=mk_hide_ids(get_click_hide(instr,id)))
+                                for (id,_) in ids if id in instr])
+        setup_hover = "".join([ "fantomas_{id}.addEventListener(\"mouseenter\",function() {{ {show} }}); fantomas_{id}.addEventListener(\"mouseleave\",function() {{ {hide} }});"
+                                  .format(id=id,
+                                          show=mk_show_ids(get_hover_show(instr,id)),
+                                          hide=mk_hide_ids(get_hover_show(instr,id)))
                                 for (id,_) in ids if id in instr])
         if noload:
-            script_base = """(function() {{ {bind_ids}{show_ids}{hide_ids}{setup_click}{setup_hover} }})();"""
+            script_base = """(function() {{ {setup}{bind_ids}{show_ids}{hide_ids}{setup_click}{setup_hover} }})();"""
         else:
-            script_base = """window.addEventListener(\"load\",function() {{ {bind_ids}{show_ids}{hide_ids}{setup_click}{setup_hover} }});"""
+            script_base = """window.addEventListener(\"load\",function() {{ {setup}{bind_ids}{setup_click}{setup_hover} }});"""
         script = script_base.format(bind_ids = bind_ids,
-                                    show_ids = show_ids,
-                                    hide_ids = hide_ids,
+                                    setup=setup,
                                     setup_click=setup_click,
                                     setup_hover=setup_hover)
         if frame:
@@ -144,20 +179,28 @@ def get_click_hide (instr,id):
     else:
         return []
 
-def get_hover (instr,id):
-    if "hover" in instr[id]:
-        return instr[id]["hover"]
+def get_hover_show (instr,id):
+    if "hover" in instr[id] and "show" in instr[id]["hover"]:
+        return instr[id]["hover"]["show"]
+    else:
+        return []
+
+def get_hover_hide (instr,id):
+    if "hover" in instr[id] and "hide" in instr[id]["hover"]:
+        return instr[id]["hover"]["hide"]
     else:
         return []
 
 
 def mk_show_ids (ids):
-    # return " ".join([ "fantomas_element_{id}.style.visibility=\"visible\";".format(id=id) for id in ids])
-    return " ".join([ "fantomas_element_{id}.style.display=\"block\";".format(id=id) for id in ids])
+    # return " ".join([ "fantomas_{id}.style.visibility=\"visible\";".format(id=id) for id in ids])
+    # return " ".join([ "fantomas_{id}.style.display=\"block\";".format(id=id) for id in ids])
+    return " ".join([ "s(fantomas_{id});".format(id=id) for id in ids])
 
 def mk_hide_ids (ids):
-    # return " ".join([ "fantomas_element_{id}.style.visibility=\"hidden\";".format(id=id) for id in ids])
-    return " ".join([ "fantomas_element_{id}.style.display=\"none\";".format(id=id) for id in ids])
+    # return " ".join([ "fantomas_{id}.style.visibility=\"hidden\";".format(id=id) for id in ids])
+    # return " ".join([ "fantomas_{id}.style.display=\"none\";".format(id=id) for id in ids])
+    return " ".join([ "h(fantomas_{id});".format(id=id) for id in ids])
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
