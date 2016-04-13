@@ -19,12 +19,13 @@ Running
   `python compile.py sample.svg` 
 
 from the directory containing `compile.py` will list all the
-available element IDs that you can use in your instructions file.
+available element IDs in `sample.svg` that you can use in your
+instructions file. 
 
 To create an HTML file that incorporates the SVG (say, `sample.svg`)
-and the desired interaction (say, `interaction.txt`), run 
+and the desired interaction (say, `interactions.txt`), run 
 
-  `python compile.py sample.svg interaction.txt > out.html`
+  `python compile.py sample.svg interactions.txt > out.html`
 
 This will create a file `out.html` containing the embeddable HTML code
 that you can open in a web browser to test. 
@@ -44,8 +45,8 @@ form:
 
    _trigger_ _id_ `->` _action_ _id_ ... _id_ `->` ... -> _action_ _id_ ... _id_
 
-which described a sequence of actions to be performed when the given
-trigger is performed. 
+which describes a sequence of actions to be performed when the given
+trigger happens.
 
 A trigger is one of:
 * `click`: the user clicks on the specified element (given by the
