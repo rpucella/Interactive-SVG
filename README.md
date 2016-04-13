@@ -5,7 +5,7 @@ The only important file is `compile.py`, which is the Python script
 that turns an SVG and an instructions file into embeddable HTML
 code. That file can live anywhere.
 
-You will need (Python 2.7)[https://www.python.org/downloads/].
+You will need [Python 2.7](https://www.python.org/downloads/).
 
 
 ## To use
