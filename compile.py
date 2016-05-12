@@ -144,7 +144,10 @@ def main (svgfile, insfile,frame,noload):
 
         setup = "var e=function(i){return document.getElementById(i);};var s=function(i){i.style.display=\"block\";};var h=function(i){i.style.display=\"none\";};"
 
-        bind_ids = "".join([ "var fantomas_{id} = e(\"{p}_{id}\");".format(p=prefix,id=id) for (id,_) in ids])
+        bind_ids = "".join([ "var fantomas_{cid} = e(\"{p}_{id}\");".format(p=prefix,cid=clean_id(id),id=id) for (id,_) in ids])
+
+        # clean IDs because they will end up in identifiers
+        ids = [ (clean_id(id),elt) for (id,elt) in ids]
 
         setup_click = ""
         setup_hover = ""
@@ -154,6 +157,7 @@ def main (svgfile, insfile,frame,noload):
                 if event == "click":
                     actions = "".join([ compile_action(act) for act in instr[id]["click"] ])
                     setup_click += "fantomas_{id}.addEventListener(\"click\",function() {{ {actions} }});".format(id=id,actions=actions)
+                    setup_click += "fantomas_{id}.style.cursor=\"pointer\";".format(id=id);
                 elif event == "hover":
                     do_actions = "".join([ save_action(i,act)+compile_action(act) for (i,act) in enumerate(instr[id]["hover"])] )
                     undo_actions = "".join(reversed([ restore_action(i,act) for (i,act) in enumerate(instr[id]["hover"]) ]))
@@ -171,7 +175,7 @@ def main (svgfile, insfile,frame,noload):
         #                         for (id,_) in ids if id in instr])
 
         if noload:
-            script_base = """(function() {{ {setup}{bind_ids}{show_ids}{hide_ids}{setup_click}{setup_hover} }})();"""
+            script_base = """(function() {{ {setup}{bind_ids}{setup_click}{setup_hover} }})();"""
         else:
             script_base = """window.addEventListener(\"load\",function() {{ {setup}{bind_ids}{setup_click}{setup_hover} }});"""
         script = script_base.format(bind_ids = bind_ids,
@@ -192,6 +196,12 @@ def main (svgfile, insfile,frame,noload):
             print "</body></html>"
 
 
+def clean_id (id):
+    # letting you use - in IDs without it causing problems
+    # augment with others characters that may sensibly show up
+    return id.replace("-","_")
+
+            
 def prefix_all_ids (svg,prefix):
 
     for elt in svg.findall(".//*[@id]"):
