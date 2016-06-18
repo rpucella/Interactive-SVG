@@ -23,31 +23,61 @@
   <body>
 
   <div style="float: left;">
-  {{!code_svg}}
-  </div>
-
-  <div>
   <ul style="list-style: none;">
      {{!code_ids}}
   </ul>
   </div>
 
+  <div style="float: left;" id="svg">
+  {{!code_svg}}
+  </div>
+
+  <div style="clear: both;">
+    <textarea id="instructions" style="width: 90%; padding: 5px; border: 1px solid #cccccc;" rows="20"></textarea>
+  </div>
+  
+  <button id="button-test">Test</button>
+
   <script>
   
-    var ids = {{!ids}};
+var ids = {{!ids}};
 
-    for (var i=0; i<ids.length; i++) {
-      (function(id) {
-      document.getElementById("checkbox_"+id).addEventListener("change",
-         function() { 
-	   if (this.checked) { 
-   	     document.getElementById(id).setAttribute("display","inline");
-           } else {
-   	     document.getElementById(id).setAttribute("display","none");
-	   }
-	 });})(ids[i]);
-    }   
+for (var i=0; i<ids.length; i++) {
+    (function(id) {
+	$("#checkbox_"+id).on("change",
+			      function() { 
+				  if (this.checked) { 
+   				      document.getElementById(id).setAttribute("display","inline");
+				  } else {
+   				      document.getElementById(id).setAttribute("display","none");
+				  }
+			      });})(ids[i])
+}
 
+$("#button-test").click(testInteractive);
+
+function testInteractive () {
+    var w = window.open("about:blank", "compiled_svg");
+    var formData = new FormData();
+    formData.append("svg",$("#svg").html());
+    formData.append("instr",$("#instructions").val());
+    formData.append("ox","{{original_x}}");
+    formData.append("oy","{{original_y}}");
+    formData.append("ow","{{original_width}}");
+    formData.append("oh","{{original_height}}");
+    var xhr = new XMLHttpRequest();
+    xhr.open("POST","/compile_svg");
+    xhr.onload = (function(w) { return function() { 
+	if (xhr.status === 200) {
+	    w.document.write(xhr.responseText);
+	    w.document.close();
+	} else {
+	    alert("Problem with server");
+	}
+    }; })(w);
+    xhr.send(formData);
+}
+				
   </script>
 
   </body>
