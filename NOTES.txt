@@ -52,3 +52,19 @@ when hover stackbar1 -> show tip1
 when hover stackbar2 -> show tip2
 when hover stackbar3 -> show tip3
 when hover stackbar4 -> show tip4
+
+
+Move things, make them appear, disappear
+
+filter data / change data
+
+tooltips with info
+highlight datapoints
+
+Buttons & selectors
+
+Canned effects
+interactions
+
+hover / highlight / flipbook
+
