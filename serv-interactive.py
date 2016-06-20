@@ -49,8 +49,8 @@ def POST_edit_svg ():
 
     ET.register_namespace('',core.xmlns_svg)
 
-    original_x = svg.attrib["x"]
-    original_y = svg.attrib["y"]
+    original_x = svg.attrib["x"] if "x" in svg.attrib else "0"
+    original_y = svg.attrib["y"] if "y" in svg.attrib else "0"
     original_width = svg.attrib["width"]
     original_height = svg.attrib["height"]
 
