@@ -17,12 +17,20 @@ def announce (s):
     print s
 
 
-@post("/upload_svg")
-def POST_upload_svg ():
+@get("/upload_svg")
+def GET_upload_svg ():
+
+    announce("GET /UPLOAD_SVG")
+    
+    return static_file("test_upload.html","static")
+    
+    
+@post("/edit_svg")
+def POST_edit_svg ():
 
     upload = request.files.get("file")
     
-    announce("POST /UPLOAD_SVG");
+    announce("POST /EDIT_SVG");
 
     tree = ET.parse(upload.file)
     svg = tree.getroot()
@@ -51,7 +59,7 @@ def POST_upload_svg ():
     svg.attrib["width"] = "500";
     svg.attrib["height"] = "300";
 
-    return template("upload_svg",
+    return template("edit_svg",
                     page_title = "Interactive SVG",
                     code_svg = ET.tostring(svg),
                     code_ids = result,
@@ -71,9 +79,11 @@ def POST_compile_svg ():
     oy = request.forms.get("oy")
     ow = request.forms.get("ow")
     oh = request.forms.get("oh")
+    frame = request.forms.get("frame")
 
     svg_tree = ET.fromstring(svg)
     instructions = core.parse_instructions(instr)
+    frame = True if frame == "true" else False
 
     size = {"x":ox,
              "y":oy,
@@ -82,9 +92,10 @@ def POST_compile_svg ():
 
     ##core.set_verbose_flag(True)
 
-    result = core.compile (svg_tree,instructions,size=size,frame=True,noload=True)
+    result = core.compile (svg_tree,instructions,size=size,frame=frame,noload=True)
 
     return result
+
     
 
 ROOT = "static"
