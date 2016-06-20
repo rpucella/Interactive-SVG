@@ -18,32 +18,65 @@
 
     <link rel="stylesheet" href="/static/style.css" />
 
+    <style>
+
+/* #svg { border: 1px solid #dddddd; } */
+
+.ui-button-text {
+  font-size: 9pt;
+}
+
+.ui-button {
+  margin-top: 1px;
+  margin-bottom: 1px;
+}
+
+body {
+  font-family: "Open Sans", sans;
+}
+
+    </style>
+
   </head>
 
   <body>
 
-  <div style="float: left;">
-  <ul style="list-style: none;">
-     {{!code_ids}}
-  </ul>
-  </div>
+    <div style="position: absolute; left: 0; right: 0; top: 0; bottom: 0; min-width: 900px; min-height: 600px;">
 
-  <div style="float: left;" id="svg">
-  {{!code_svg}}
-  </div>
+      <p style="margin: 10px; position: absolute; left: 20px; top: 20px;"><b>SVG:</b></p>
 
-  <div style="clear: both;">
-    <textarea id="instructions" style="width: 90%; padding: 5px; border: 1px solid #cccccc;" rows="20"></textarea>
-  </div>
-  
-  <button id="button-test">Test</button>
+      <div id="svg" style="margin: 10px; position: absolute; left: 20px; top: 20px; bottom: 50%; right: 40%;">
+  	  {{!code_svg}}
+      </div>
 
+
+      <div style="margin: 10px; margin-left: 50px; position: absolute; left: 60%; top: 20px; right: 20px; bottom: 20px; overflow-y: auto;">
+	<p style="margin-top: 0;"><b>ELEMENT IDENTIFIERS:</b></p>
+	<ul style="list-style: none; margin-left: 0; padding-left: 0;">
+	  {{!code_ids}}
+	</ul>
+      </div>
+
+      <div style="margin: 10px; position: absolute; left: 20px; top: 50%; bottom: 20px; right: 40%;">
+	<p style="margin-top: 0;"><b>INTERACTION SCRIPT:</b></p>
+	<textarea id="instructions" style="width: 100%; padding: 5px; border: 1px solid #dddddd; height: 80%;" ></textarea>
+	<span><button id="button-test" style="width: 200px; margin-right: 20px;">Test</button><button id="button-export" style="width: 200px;">Export</button></span>
+      </div>
+
+    </div>
+      
   <script>
   
 var ids = {{!ids}};
 
+$("#svg svg").attr("x",0).attr("y",0).attr("width","100%").attr("height","100%");
+
+$("#button-test").button();
+$("#button-export").button();
+
 for (var i=0; i<ids.length; i++) {
     (function(id) {
+        $("#checkbox_"+id).button();
 	$("#checkbox_"+id).on("change",
 			      function() { 
 				  if (this.checked) { 
