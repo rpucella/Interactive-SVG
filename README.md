@@ -40,8 +40,9 @@ directly upon loading the HTML as opposed to waiting for the page
 ## Format of the instructions file
 
 The instructions file is a simple text file containing a sequence of
-interaction instructions. An interaction instruction has the following
-form:
+interaction instructions. Interaction instructions currently must be separated by at least one blank line.
+
+An interaction instruction has the following form:
 
    _trigger_ _id_ `->` _action_ _id_ ... _id_ `->` ... -> _action_ _id_ ... _id_
 
