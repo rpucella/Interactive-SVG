@@ -44,7 +44,7 @@ def compile (svg, instructions,size=None,frame=False,noload=False):
 
     output = ""
 
-    setup = "var e=function(i){return document.getElementById(i);};var s=function(i){i.style.display=\"block\";};var h=function(i){i.style.display=\"none\";};"
+    setup = """var e=function(i){var x=document.getElementById(i);x.fantomas_active=true;return x;};var s=function(i){i.style.display="block";i.style.opacity="1";i.fantomas_active=true;};var h=function(i){i.style.display="none";};var d=function(i){i.style.display="block";i.style.opacity="0.25";i.fantomas_active=false;};"""
 
     bind_ids = "".join([ "var fantomas_{cid} = e(\"{p}_{id}\");".format(p=prefix,cid=clean_id(id),id=id) for (id,_) in ids])
 
@@ -58,12 +58,12 @@ def compile (svg, instructions,size=None,frame=False,noload=False):
         for event in instructions[id]:
             if event == "click":
                 actions = "".join([ compile_action(act) for act in instructions[id]["click"] ])
-                setup_click += "fantomas_{id}.addEventListener(\"click\",function() {{ {actions} }});".format(id=id,actions=actions)
+                setup_click += "fantomas_{id}.addEventListener(\"click\",function() {{ if (this.fantomas_active) {{ {actions} }} }});".format(id=id,actions=actions)
                 setup_click += "fantomas_{id}.style.cursor=\"pointer\";".format(id=id);
             elif event == "hover":
                 do_actions = "".join([ save_action(i,act)+compile_action(act) for (i,act) in enumerate(instructions[id]["hover"])] )
                 undo_actions = "".join(reversed([ restore_action(i,act) for (i,act) in enumerate(instructions[id]["hover"]) ]))
-                setup_hover += "fantomas_{id}.addEventListener(\"mouseenter\",function() {{ {do_actions} }}); fantomas_{id}.addEventListener(\"mouseleave\",function() {{ {undo_actions} }});".format(id=id,do_actions=do_actions,undo_actions=undo_actions)
+                setup_hover += "fantomas_{id}.addEventListener(\"mouseenter\",function() {{ if (this.fantomas_active) {{ {do_actions} }} }}); fantomas_{id}.addEventListener(\"mouseleave\",function() {{ if (this.fantomas_active) {{ {undo_actions} }} }});".format(id=id,do_actions=do_actions,undo_actions=undo_actions)
 
     if noload:
         script_base = """(function() {{ {setup}{bind_ids}{setup_click}{setup_hover} }})();"""
@@ -123,10 +123,7 @@ def compile_action (act):
         return mk_hide_ids(act["elements"])
     elif act["action"] == "dim":
         return mk_dim_ids(act["elements"])
-    elif act["action"] == "disable":
-        return mk_disable_ids(act["value"] if "value" in act else None,act["elements"])
-    elif act["action"] == "enable":
-        return mk_enable_ids(act["value"] if "value" in act else None,act["elements"])
+
     else:
         return ""
 
@@ -184,14 +181,6 @@ def mk_hide_ids (ids):
 def mk_dim_ids (ids):
     return "".join([ "d(fantomas_{id});".format(id=id) for id in ids])
     
-
-def mk_disable_ids (val,ids):
-    opacity = lambda id: "fantomas_{id}.style.opacity={val};".format(id=id,val=val) if val else ""
-    return "".join([ "{opac}fantomas_{id}.style.pointerEvents=\"none\";".format(id=id,opac=opacity(id)) for id in ids])
-
-def mk_enable_ids (val,ids):
-    opacity = lambda id: "fantomas_{id}.style.opacity={val};".format(id=id,val=val) if val else ""
-    return "".join([ "{opac}fantomas_{id}.style.pointerEvents=\"auto\";".format(id=id,opac=opacity(id)) for id in ids])
 
 
 
@@ -258,13 +247,9 @@ def parseEvent (s):
  
 def parse_action (s):
     p = tokenize(s)
-    if len(p) > 0 and p[0] in ["show","hide"]:
+    if len(p) > 0 and p[0] in ["show","hide","dim"]:
         return {"action":p[0],
                 "elements":p[1:]}
-    elif len(p) > 1 and p[0] in ["enable","disable"]:
-        return {"action":p[0],
-                "value":p[1],
-                "elements":p[2:]}
     else:
         raise Exception("Parsing error - cannot parse action part of instruction {}".format(s))
 
