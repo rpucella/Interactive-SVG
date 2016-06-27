@@ -121,6 +121,8 @@ def compile_action (act):
         return mk_show_ids(act["elements"])
     elif act["action"] == "hide":
         return mk_hide_ids(act["elements"])
+    elif act["action"] == "dim":
+        return mk_dim_ids(act["elements"])
     elif act["action"] == "disable":
         return mk_disable_ids(act["value"] if "value" in act else None,act["elements"])
     elif act["action"] == "enable":
@@ -178,6 +180,10 @@ def mk_hide_ids (ids):
     # return " ".join([ "fantomas_{id}.style.visibility=\"hidden\";".format(id=id) for id in ids])
     # return " ".join([ "fantomas_{id}.style.display=\"none\";".format(id=id) for id in ids])
     return "".join([ "h(fantomas_{id});".format(id=id) for id in ids])
+
+def mk_dim_ids (ids):
+    return "".join([ "d(fantomas_{id});".format(id=id) for id in ids])
+    
 
 def mk_disable_ids (val,ids):
     opacity = lambda id: "fantomas_{id}.style.opacity={val};".format(id=id,val=val) if val else ""
