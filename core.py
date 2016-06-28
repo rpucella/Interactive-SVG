@@ -10,6 +10,8 @@ import json
 
 import uuid
 
+import tokenize as tok
+
 VERBOSE_FLAG = False
 
 def set_verbose_flag (flag):
@@ -190,13 +192,11 @@ def mk_dim_ids (ids):
     
 
 
-
-
-
 def parse_instructions (instrs_string):
     verbose("Parsing interaction instructions")
     instrs = {}
     instructions = []
+    tokens = []
 
     current = ""
     for line in instrs_string.split("\n"):
@@ -204,27 +204,31 @@ def parse_instructions (instrs_string):
         #verbose("current = "+current)
         if "#" in line:
             line = line[:line.find("#")]
-        if line.strip():
-            current += " "+(line.strip())
-        elif current:
-            instructions.append(current)
-            current = ""
 
-    if current:
-        instructions.append(current)
+        tokens.extend(tok.tokenize(line))
+#        if line.strip():
+#            current += " "+(line.strip())
+#        elif current:
+#            instructions.append(current)
+#            current = ""
+#
+#    if current:
+#        instructions.append(current)
 
     ###verbose(len(instructions))
 
-    for instr in instructions:
-        verbose("  {}".format(instr.strip()))
+    #for instr in instructions:
+    #    verbose("  {}".format(instr.strip()))
+
+    instructions = split_at_periods([ s for (_,s) in tokens])
 
     for instr in instructions:
-        parts = instr.split("->")
+        parts = split_at_arrows(instr)
 
         if len(parts) < 2: 
-            raise Exception("Parsing error - cannot parse {}".format(instr.strip()))
+            raise Exception("Parsing error - cannot parse {}".format(instr))
 
-        (name,event) = parseEvent(parts[0])
+        (name,event) = parse_event(parts[0])
         if name not in instrs:
             instrs[name] = {}
         # clobber old event for that name if one exists
@@ -240,20 +244,56 @@ def parse_instructions (instrs_string):
     return instrs
 
 
+def split_at_arrows (lst):
+    # xxx xxx xxx -> xxx xxx xxx -> xxx xxx xx
+
+    result = []
+    current = []
+
+    for s in lst:
+        if s == "->":
+            result.append(current)
+            current = []
+        else:
+            current.append(s)
+
+    result.append(current)
+    
+    return result
+    
+def split_at_periods (lst):
+    #  xxx xxx xxx . xxx xxx xxx . xxx xxx xxx .
+
+    result = []
+    current = []
+
+    for s in lst:
+        if s == ".":
+            result.append(current)
+            current = []
+        else:
+            current.append(s)
+
+    if current:
+        raise Exception("Parsing error - instructions not terminated with .")
+
+    return result
+    
 
 def tokenize (s):
     # really, should not break up strings "..." or '...'
     return s.split()
 
-def parseEvent (s):
-    p = tokenize(s)
+def parse_event (s):
+    p = s # tokenize(s)
     if len(p) != 2:
         raise Exception("Parsing error - cannot parse event part of instruction {}".format(s))
     return (p[1],p[0])
 
  
 def parse_action (s):
-    p = tokenize(s)
+    # p = tokenize(s)
+    p = s
     if len(p) > 0 and p[0] in ["show","hide","dim"]:
         return {"action":p[0],
                 "elements":p[1:]}

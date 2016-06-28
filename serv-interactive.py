@@ -20,21 +20,42 @@ def announce (s):
 @get("/upload_svg")
 def GET_upload_svg ():
 
-    announce("GET /UPLOAD_SVG")
+    announce("GET /upload_svg")
     
     return static_file("test_upload.html","static")
+
+
+@get("/create_svg")
+def GET_chart ():
+
+    announce("GET /create_svg")
+
+    return static_file("test_create.html","static")
     
     
 @post("/edit_svg")
 def POST_edit_svg ():
 
-    upload = request.files.get("file")
-    
-    announce("POST /EDIT_SVG");
+    announce("POST /edit_svg")
 
-    tree = ET.parse(upload.file)
-    svg = tree.getroot()
+    source = request.forms.get("source")
+
+    print "source = ",source
+
+    if source == "file":
+        upload = request.files.get("file")
+        tree = ET.parse(upload.file)
+        svg = tree.getroot()
     
+    elif source == "chart":
+        svg_string = request.forms.get("file")
+        print svg_string
+        svg = ET.fromstring(svg_string)
+        
+    else:
+        print "Unknown source!"
+        abort(500,"Unknown source {}".format(source))
+        
     if svg.tag != "svg" and svg.tag != "{{{}}}svg".format(core.xmlns_svg):
         raise Exception("root element not <svg>")
     ids = core.available_ids(svg)

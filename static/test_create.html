@@ -1,0 +1,99 @@
+
+<form action="/edit_svg" id="main_form" method="post" enctype="multipart/form-data">
+    <textarea id="code" name="json_code" placeholder="JSON description" cols="100" rows="40">
+{
+  "width":400, 
+    "title":"My Awesome Title!",
+     "data":[
+      {"label":"First", "value":75},
+      {"label":"Second", "value":50},
+      {"label":"Third", "value":25}
+  ]
+}
+</textarea>
+  <input id="svg_code" type="hidden" name="file" value="">
+  <input id="flag" type="hidden" name="source" value="chart">
+</form>
+
+<button id="compile">Create Interactive SVG</button>
+
+<script>
+
+document.getElementById("compile").addEventListener("click",compile);
+
+
+function compile () {
+
+    try {
+	var json = JSON.parse(document.getElementById("code").value);
+    }
+    catch (e) {
+	alert("Cannot parse JSON description\n"+e.message);
+	return;
+    }
+    
+    console.log("JSON = ",json);
+
+    
+    var width = json.width || 500;
+
+    var height = 100;
+    var top = 0;
+
+    var rHeight = 50;
+
+    var body = ""
+
+    if (json.title) {
+	
+	body += '<text id="title" text-anchor="middle" x="{}" y="50" dy="0.35em">{}</text>'.format(width/2,json.title);
+	height += 100;
+	top += 100;
+    }
+
+    var data = json.data || [];
+    console.log(data);
+
+    var maxValue = Math.max.apply(null,data.map(function(r) { return r.value; }));
+    var availWidth = width - 70;   // 20 left margin, 20 right margin, 30 for text?
+
+    data.forEach(function (r,i) {
+
+	var barWidth = availWidth * (r.value / maxValue);
+	
+	body += '<text id="label_{}" x="20" y="{}" dy="0.35em" text-anchor="start">{}</text>'.format(i,top+i*rHeight+rHeight/4,r.label)
+	body += '<rect id="bar_{}" x="20" y="{}" height="{}" width="{}" fill="#467f1a" />'.format(i,top+i*rHeight+rHeight/2,rHeight/2,barWidth);
+	body += '<rect id="bar_highlight_{}" display="none" x="20" y="{}" height="{}" width="{}" fill="none" stroke="#003300" stroke-width="2px" />'.format(i,top+i*rHeight+rHeight/2,rHeight/2,barWidth);
+	body += '<text id="number_{}" x="{}" y="{}" dy="0.35em" text-anchor="start">{}</text>'.format(i,30+barWidth,top+i*rHeight+3*rHeight/4,r.value);
+	height += rHeight;
+
+    });
+
+    ///body += '<rect id="test" x="50" y="{}" width="{}" height="60" fill="red" stroke="black" />'.format(top+20,width-100);
+
+    body += '<rect id="background" x="0" y="0" width="{}" height="{}" fill="none" stroke="#cccccc" />'.format(width,height);
+    
+    result_svg = '<svg x=\"0\" y=\"0\" width=\"{}\" height=\"{}\">{}</svg>'.format(width,height,body);
+
+    /* put resulting SVG into the form and submit */
+    document.getElementById("svg_code").value = result_svg;
+    document.getElementById("main_form").submit();
+}
+
+
+(function(){
+
+    function format () {
+	var i = 0, args = arguments;
+	return this.replace(/{}/g, function () {
+	    return typeof args[i] != 'undefined' ? args[i++] : '';
+	});
+    }
+
+    if (!String.format) {
+	String.prototype.format = format
+    }
+})();
+
+  
+</script>

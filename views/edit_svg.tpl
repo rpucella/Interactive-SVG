@@ -64,7 +64,7 @@ color: #1e1e1e;
 
       <p style="margin: 10px; position: absolute; left: 20px; top: 20px;"><b>SVG:</b></p>
 
-      <div id="svg" style="margin: 10px; position: absolute; left: 20px; top: 20px; bottom: 50%; right: 40%;">
+      <div id="svg" style="margin: 10px; position: absolute; left: 20px; top: 50px; bottom: 50%; right: 40%;">
   	  {{!code_svg}}
       </div>
 

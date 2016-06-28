@@ -1,14 +1,15 @@
 
-click red -> show back -> hide text_red -> dim red
+click red -> show back -> hide text_red -> dim red.
 
-hover red -> show text_red
+hover red -> show text_red.
 
-click blue -> show back -> hide text_blue -> dim blue
+click blue -> show back -> hide text_blue -> dim blue.
 
-hover blue -> show text_blue
+hover blue -> show text_blue.
 
-click green -> show back -> hide text_green -> dim green
+click green -> show back -> hide text_green -> dim green.
 
-hover green -> show text_green
+hover green -> show text_green.
 
-click back -> show red blue green -> hide back
+click back -> show red blue green -> hide back.
+

@@ -40,14 +40,14 @@ directly upon loading the HTML as opposed to waiting for the page
 ## Format of the instructions file
 
 The instructions file is a simple text file containing a sequence of
-interaction instructions. Interaction instructions currently must be separated by at least one blank line.
+interaction instructions. 
 
 An interaction instruction has the following form:
 
-   _trigger_ _id_ `->` _action_ _id_ ... _id_ `->` ... -> _action_ _id_ ... _id_
+   _trigger_ _id_ `->` _action_ _id_ ... _id_ `->` ... -> _action_ _id_ ... _id_`.`
 
 which describes a sequence of actions to be performed when the given
-trigger happens.
+trigger happens. It must be terminated by a period.
 
 A trigger is one of:
 * `click`: the user clicks on the specified element (given by the
@@ -65,7 +65,7 @@ undone explicitly by another trigger.
 
 For example:
 
-   `click red -> show back -> hide red text_red`
+   `click red -> show back -> hide red text_red.`
 
 specifies that upon a click on element with ID `red`, the element
 `back` should be made visible, and then the elements `red` and
