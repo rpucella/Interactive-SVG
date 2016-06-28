@@ -28,6 +28,9 @@ def compile (svg, instructions,size=None,frame=False,noload=False):
         raise Exception("root element not <svg>")
     ids = available_ids(svg)
 
+    ## NOT NEEDED! 
+    ##fix_display(svg)
+
     # instr = parse_instructions(instructions)
     
     # generate uuid
@@ -44,7 +47,7 @@ def compile (svg, instructions,size=None,frame=False,noload=False):
 
     output = ""
 
-    setup = """var e=function(i){var x=document.getElementById(i);x.fantomas_active=true;return x;};var s=function(i){i.style.display="block";i.style.opacity="1";i.fantomas_active=true;};var h=function(i){i.style.display="none";};var d=function(i){i.style.display="block";i.style.opacity="0.25";i.fantomas_active=false;};"""
+    setup = """var e=function(i){var x=document.getElementById(i);x.fantomas_active=true;return x;};var s=function(i){i.setAttribute("display","display");i.setAttribute("opacity","1");i.fantomas_active=true;};var h=function(i){i.setAttribute("display","none");};var d=function(i){i.setAttribute("display","display");i.setAttribute("opacity","0.25");i.fantomas_active=false;};"""
 
     bind_ids = "".join([ "var fantomas_{cid} = e(\"{p}_{id}\");".format(p=prefix,cid=clean_id(id),id=id) for (id,_) in ids])
 
@@ -97,8 +100,16 @@ def compile (svg, instructions,size=None,frame=False,noload=False):
 
 
 
-
-
+def fix_display (svg):
+    # take an svg and replace all the "display" attribute by "display" style tags
+    for elt in svg.iter():
+        if elt.get("display"):
+            d = elt.get("display")
+            del elt.attrib["display"]
+            if elt.get("style"):
+                elt.set("style","{} display:\"{}\";".format(elt.get("style"),d))
+            else:
+                elt.set("style","display:\"{}\";".format(d))
 
 def available_ids (svg):
     return [(elt.get("id"),elt) for elt in svg.findall(".//*[@id]")]
@@ -130,14 +141,14 @@ def compile_action (act):
 
 def save_action (i,act):
     if act["action"] in ["show","hide"]:
-        return "".join([ "fantomas_{id}.saved_fantomas_display_{i}=fantomas_{id}.style.display;".format(id=id,i=i) for id in act["elements"] ])
+        return "".join([ """fantomas_{id}.saved_fantomas_display_{i}=fantomas_{id}.getAttribute("display");""".format(id=id,i=i) for id in act["elements"] ])
     else:
         verbose("saving for action {} not implemented".format(act["action"]))
         return ""
 
 def restore_action (i,act):
     if act["action"] in ["show","hide"]:
-        return "".join([ "fantomas_{id}.style.display=fantomas_{id}.saved_fantomas_display_{i};".format(id=id,i=i) for id in act["elements"] ])
+        return "".join([ """fantomas_{id}.setAttribute("display",fantomas_{id}.saved_fantomas_display_{i});""".format(id=id,i=i) for id in act["elements"] ])
     else:
         verbose("saving for action {} not implemented".format(act["action"]))
         return ""
@@ -169,13 +180,9 @@ def get_hover_hide (instructions,id):
 
 
 def mk_show_ids (ids):
-    # return " ".join([ "fantomas_{id}.style.visibility=\"visible\";".format(id=id) for id in ids])
-    # return " ".join([ "fantomas_{id}.style.display=\"block\";".format(id=id) for id in ids])
     return "".join([ "s(fantomas_{id});".format(id=id) for id in ids])
 
 def mk_hide_ids (ids):
-    # return " ".join([ "fantomas_{id}.style.visibility=\"hidden\";".format(id=id) for id in ids])
-    # return " ".join([ "fantomas_{id}.style.display=\"none\";".format(id=id) for id in ids])
     return "".join([ "h(fantomas_{id});".format(id=id) for id in ids])
 
 def mk_dim_ids (ids):
