@@ -49,7 +49,7 @@ def POST_edit_svg ():
     
     elif source == "chart":
         svg_string = request.forms.get("file")
-        print svg_string
+        # print svg_string
         svg = ET.fromstring(svg_string)
         
     else:
@@ -80,10 +80,36 @@ def POST_edit_svg ():
     svg.attrib["width"] = "500";
     svg.attrib["height"] = "300";
 
+    instr_string = None
+
+    if source == "file":
+             upload.file.seek(0)
+             for line in upload.file:
+                if line.strip() == "<!--FANTOMAS":
+                    instr_string = ""
+                elif line.strip() == "-->":
+                    break
+                elif instr_string is not None: 
+                    instr_string += line
+
+    elif source == "chart":
+        for line in svg_string.split("\n"):
+                if line.strip() == "<!--FANTOMAS":
+                    instr_string = ""
+                elif line.strip() == "-->":
+                    break
+                elif instr_string is not None: 
+                    instr_string += line+"\n"
+        
+    if instr_string is None:
+        instr_string = ""
+        
+
     return template("edit_svg",
                     page_title = "Interactive SVG",
                     code_svg = ET.tostring(svg),
                     code_ids = result,
+                    initial_instr = instr_string,
                     original_x = original_x,
                     original_y = original_y,
                     original_width = original_width,

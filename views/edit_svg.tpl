@@ -85,7 +85,7 @@ color: #1e1e1e;
       
       <div style="margin: 10px; position: absolute; left: 20px; top: 50%; bottom: 20px; right: 40%;">
 	<p style="margin-top: 0;"><b>INTERACTION SCRIPT:</b></p>
-	<textarea id="instructions" style="width: 100%; padding: 5px; border: 1px solid #dddddd; height: 90%;" ></textarea>
+	<textarea id="instructions" style="width: 100%; padding: 5px; border: 1px solid #dddddd; height: 90%;" >{{initial_instr}}</textarea>
       </div>
 
     </div>

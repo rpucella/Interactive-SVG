@@ -144,6 +144,8 @@ def compile_action (act):
 def save_action (i,act):
     if act["action"] in ["show","hide"]:
         return "".join([ """fantomas_{id}.saved_fantomas_display_{i}=fantomas_{id}.getAttribute("display");""".format(id=id,i=i) for id in act["elements"] ])
+    elif act["action"] in ["dim"]: 
+        return "".join([ """fantomas_{id}.saved_fantomas_display_{i}=fantomas_{id}.getAttribute("display"); fantomas_{id}.saved_fantomas_opacity_{i}=fantomas_{id}.getAttribute("opacity"); fantomas_{id}.saved_fantomas_active_{i}=fantomas_{id}.fantomas_active;""".format(id=id,i=i) for id in act["elements"] ])
     else:
         verbose("saving for action {} not implemented".format(act["action"]))
         return ""
@@ -151,6 +153,8 @@ def save_action (i,act):
 def restore_action (i,act):
     if act["action"] in ["show","hide"]:
         return "".join([ """fantomas_{id}.setAttribute("display",fantomas_{id}.saved_fantomas_display_{i});""".format(id=id,i=i) for id in act["elements"] ])
+    elif act["action"] in ["dim"]: 
+        return "".join([ """fantomas_{id}.setAttribute("display",fantomas_{id}.saved_fantomas_display_{i}); fantomas_{id}.setAttribute("opacity",fantomas_{id}.saved_fantomas_opacity_{i}); fantomas_{id}.fantomas_active=fantomas_{id}.saved_fantomas_active_{i};""".format(id=id,i=i) for id in act["elements"] ])
     else:
         verbose("saving for action {} not implemented".format(act["action"]))
         return ""

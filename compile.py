@@ -24,12 +24,31 @@ def main (svgfile, insfile,frame,noload):
     show_available_ids(ids)
     
     if insfile:
+        # we have an instruction file
+
         verbose("Reading interaction instructions [{}]".format(insfile))
         instr = load_instructions(insfile)
 
         output = compile(svg,instr,frame=frame,noload=noload)
-        
         print output
+
+    else:
+        #check to see if we can read it from the SVG itself
+        
+        with open(svgfile,"r") as f:
+            instr_string = None
+            for line in f:
+                if line.strip() == "<!--FANTOMAS":
+                    verbose("Reading instructions from SVG file")
+                    instr_string = ""
+                elif line.strip() == "-->":
+                    instr = parse_instructions(instr_string)
+                    output = compile(svg,instr,frame=frame,noload=noload)
+                    print output
+                    return
+                elif instr_string is not None: 
+                    instr_string += line
+
 
 
 if __name__ == "__main__":
