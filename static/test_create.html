@@ -1,15 +1,16 @@
 
 <form action="/edit_svg" id="main_form" method="post" enctype="multipart/form-data">
     <textarea id="code" name="json_code" placeholder="JSON description" cols="100" rows="40">
-{
-  "width":400, 
-    "title":"My Awesome Title!",
-     "data":[
-      {"label":"First", "value":75},
-      {"label":"Second", "value":50},
-      {"label":"Third", "value":25}
-  ]
-}
+    {
+	"width":400, 
+	"title":"My Awesome Title!",
+	"data":[
+	    {"label":"First", "value":75},
+	    {"label":"Second", "value":50},
+	    {"label":"Third", "value":25},
+	    {"label":"Fourth", "value":10}
+	]
+    }
 </textarea>
   <input id="svg_code" type="hidden" name="file" value="">
   <input id="flag" type="hidden" name="source" value="chart">
@@ -72,7 +73,7 @@ function compile () {
 	body += '<g id="group_{}">'.format(i);
 	body += '<text id="label_{}" x="20" y="{}" dy="0.35em" text-anchor="start">{}</text>'.format(i,top+i*rHeight+rHeight/4,r.label)
 	body += '<rect id="bar_{}" x="20" y="{}" height="{}" width="{}" fill="#467f1a" />'.format(i,top+i*rHeight+rHeight/2,rHeight/2,barWidth);
-	body += '<rect id="bar_highlight_{}" display="none" x="20" y="{}" height="{}" width="{}" fill="none" stroke="#003300" stroke-width="2px" />'.format(i,top+i*rHeight+rHeight/2,rHeight/2,barWidth);
+	body += '<rect id="bar_highlight_{}" display="none" x="19" y="{}" height="{}" width="{}" fill="none" stroke="#003300" stroke-width="2px" />'.format(i,top+i*rHeight+rHeight/2-1,rHeight/2+2,barWidth+2);
 	body += '<text id="number_{}" x="{}" y="{}" dy="0.35em" text-anchor="start">{}</text>'.format(i,30+barWidth,top+i*rHeight+3*rHeight/4,r.value);
 	body += '</g>';
 	height += rHeight;

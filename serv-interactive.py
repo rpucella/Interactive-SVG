@@ -16,6 +16,10 @@ def announce (s):
     print "--------------------------------------------------"
     print s
 
+@get("/"):
+def GET_root ():
+    redirect("/upload_svg")
+    
 
 @get("/upload_svg")
 def GET_upload_svg ():
@@ -147,7 +151,6 @@ def POST_compile_svg ():
 
 ROOT = "static"
 
-@get('/')
 @get('/<path:path>')
 def static (path="index.html"):
     return static_file(path, root=ROOT)
