@@ -2,23 +2,44 @@
 <form action="/edit_svg" id="main_form" method="post" enctype="multipart/form-data">
     <textarea id="code" name="json_code" placeholder="JSON description" cols="100" rows="40">
     {
-	"width":400, 
-	"title":"My Awesome Title!",
-	"data":[
-	    {"label":"First", 
-	     "value":75, 
-	     "value_text":"75%", 
-	     "tooltip":"Count: 750   Base: 1000"},
-	    {"label":"Second", 
-	     "value":50, 
-	     "value_text":"50%", 
-	     "tooltip":"Count: 500   Base: 1000"},
-	    {"label":"Third", 
-	     "value":25, 
-	     "tooltip":"Count: 250   Base: 1000"},
-	    {"label":"Fourth", 
-	     "value":10}
-	]
+	"width":400,
+	"views": [ { "type":"chart-bar",
+		     "name":"first-chart",
+		     "title":"My Awesome Title!",
+		     "data":[ {"label":"First", 
+			       "value":75, 
+			       "value_text":"75%", 
+			       "tooltip":"Count: 750   Base: 1000"},
+			      {"label":"Second", 
+			       "value":50, 
+			       "value_text":"50%", 
+			       "tooltip":"Count: 500   Base: 1000"},
+			      {"label":"Third", 
+			       "value":25, 
+			       "tooltip":"Count: 250   Base: 1000"},
+			      {"label":"Fourth", 
+			       "value":10}
+			    ]
+		   },
+		   
+		   { "type":"chart-bar",
+		     "name":"second-chart",
+		     "title":"My Other Awesome Title!",
+		     "data":[ {"label":"Another first", 
+			       "value":55, 
+			       "value_text":"55%", 
+			       "tooltip":"Count: 550   Base: 1000"},
+			      {"label":"Another second", 
+			       "value":33, 
+			       "value_text":"33%", 
+			       "tooltip":"Count: 330   Base: 1000"},
+			      {"label":"Another third", 
+			       "value":22,
+			       "value_text":"22%",
+			       "tooltip":"Count: 220   Base: 1000"}
+			    ]
+		   }		   
+		 ]
     }
 </textarea>
   <input id="svg_code" type="hidden" name="file" value="">
@@ -47,65 +68,85 @@ function compile () {
     
     var width = json.width || 500;
 
-    var height = 100;
-    var top = 0;
+    var initialComputedHeight = 100;
+
+    var maxComputedHeight = 0;
 
     var rHeight = 50;
 
     var body = ""
 
-    if (json.title) {
-	
-	body += '<text id="title" text-anchor="middle" x="{}" y="50" dy="0.35em">{}</text>'.format(width/2,json.title);
-	height += 100;
-	top += 100;
-    }
+    var views = json.views || [];
+    console.log(views);
 
-    var data = json.data || [];
-    console.log(data);
-
-    var maxValue = Math.max.apply(null,data.map(function(r) { return r.value; }));
     var availWidth = width - 70;   // 20 left margin, 20 right margin, 30 for text?
-
+	
     var instructions = ""
 
-    var dim_all_but = function(j) { 
-	var result = "dim ";
-	data.forEach(function(r,i) { if (i !== j) { result += ' group_{}'.format(i); } });
-	return result;
-    }
+    views.forEach(function(v) {
 
-    data.forEach(function (r,i) {
+	var top = 0;
 
-	var barWidth = availWidth * (r.value / maxValue);
-
-	var text = r.value_text ? r.value_text : r.value;
+	// reset computed height to its initial value
+	var computedHeight = initialComputedHeight;
 	
-	body += '<g id="group_{}">'.format(i);
-	body += '<text id="label_{}" x="20" y="{}" dy="0.35em" text-anchor="start">{}</text>'.format(i,top+i*rHeight+rHeight/4,r.label)
-	body += '<rect id="bar_{}" x="20" y="{}" height="{}" width="{}" fill="#467f1a" />'.format(i,top+i*rHeight+rHeight/2,rHeight/2,barWidth);
-	body += '<rect id="bar_highlight_{}" display="none" x="19" y="{}" height="{}" width="{}" fill="none" stroke="#003300" stroke-width="2px" />'.format(i,top+i*rHeight+rHeight/2-1,rHeight/2+2,barWidth+2);
-	body += '<text id="number_{}" x="{}" y="{}" dy="0.35em" text-anchor="start">{}</text>'.format(i,30+barWidth,top+i*rHeight+3*rHeight/4,text);
-	body += '</g>';
-	height += rHeight;
-    });
-
-    // tooltips
-    data.forEach(function(r,i) { 
-	if (r.tooltip) {
-            body += '<g id="tooltip_{}" display="none">'.format(i);
-	    body += '<path fill="white" stroke="#003300" stroke-width="2px" d="M 30 {} h 5 l 5 -8 l 5 8 h 185 v {} h -200 Z" />'.format(top+i*rHeight+rHeight+12,rHeight,rHeight);
-	    body += '<text x="40" y="{}" dy="0.35em" text-anchor="start">{}</text>'.format(top+i*rHeight+rHeight+12+rHeight/2,r.tooltip);
-	    //body += '<rect x="30" y="{}" width="200" height="{}" fill="white" stroke="#003300" stroke-width="2px" />'.format(top+i*rHeight+rHeight,rHeight);
-	    body += '</g>';
+	var data = v.data || [];
+	
+	var maxValue = Math.max.apply(null,data.map(function(r) { return r.value; }));
+	var dim_all_but = function(j) { 
+	    var result = "dim ";
+	    data.forEach(function(r,i) { if (i !== j) { result += ' {}_group_{}'.format(v.name,i); } });
+	    return result;
 	}
-    });  
 
-    // build instructions
-    data.forEach(function(r,i) { 
-	var tooltip_instr = r.tooltip ? "tooltip_{} ".format(i) : "";
-	instructions += 'hover bar_{} -> {} -> show {} bar_highlight_{}.\n'.format(i,dim_all_but(i),tooltip_instr,i);
+	body += '<g id="{}">'.format(v.name);
+
+	if (v.title) {
+	    
+	    body += '<text id="{}_title" text-anchor="middle" x="{}" y="50" dy="0.35em">{}</text>'.format(v.name,width/2,v.title);
+	    computedHeight += 100;
+	    top += 100;
+	}
+
+	data.forEach(function (r,i) {
+	    
+	    var barWidth = availWidth * (r.value / maxValue);
+	    
+	    var text = r.value_text ? r.value_text : r.value;
+	    
+	    body += '<g id="{}_group_{}">'.format(v.name,i);
+	    body += '<text id="{}_label_{}" x="20" y="{}" dy="0.35em" text-anchor="start" font-size="{}pt">{}</text>'.format(v.name,i,top+i*rHeight+rHeight/4,rHeight/5,r.label)
+	    body += '<rect id="{}_bar_{}" x="20" y="{}" height="{}" width="{}" fill="#669933" />'.format(v.name,i,top+i*rHeight+rHeight/2,rHeight/2,barWidth);
+	    body += '<rect id="{}_bar_highlight_{}" display="none" x="19" y="{}" height="{}" width="{}" fill="none" stroke="#003300" stroke-width="2px" />'.format(v.name,i,top+i*rHeight+rHeight/2-1,rHeight/2+2,barWidth+2);
+	    body += '<text id="{}_number_{}" x="{}" y="{}" dy="0.35em" text-anchor="start">{}</text>'.format(v.name,i,30+barWidth,top+i*rHeight+3*rHeight/4,text);
+	    body += '</g>';
+	    computedHeight += rHeight;
+	});
+
+	// tooltips
+	data.forEach(function(r,i) { 
+	    if (r.tooltip) {
+		body += '<g id="{}_tooltip_{}" display="none">'.format(v.name,i);
+		body += '<path fill="white" stroke="#003300" stroke-width="2px" d="M 30 {} h 5 l 5 -8 l 5 8 h 185 v {} h -200 Z" />'.format(top+i*rHeight+rHeight+12,rHeight,rHeight);
+		body += '<text x="40" y="{}" dy="0.35em" text-anchor="start">{}</text>'.format(top+i*rHeight+rHeight+12+rHeight/2,r.tooltip);
+		//body += '<rect x="30" y="{}" width="200" height="{}" fill="white" stroke="#003300" stroke-width="2px" />'.format(top+i*rHeight+rHeight,rHeight);
+		body += '</g>';
+	    }
+	});
+
+	body += '</g>';
+
+	// build instructions
+	data.forEach(function(r,i) { 
+	    var tooltip_instr = r.tooltip ? "{}_tooltip_{} ".format(v.name,i) : "";
+	    instructions += 'hover {}_bar_{} -> {} -> show {} {}_bar_highlight_{}.\n'.format(v.name,i,dim_all_but(i),tooltip_instr,v.name,i);
+	});
+
+	maxComputedHeight = Math.max(maxComputedHeight,computedHeight);
+
     });
+    
+    var height = json.height || maxComputedHeight;
 
     body += '<rect id="border" x="0" y="0" width="{}" height="{}" fill="none" stroke="#dddddd" />'.format(width,height);
     

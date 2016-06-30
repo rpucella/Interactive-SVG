@@ -30,6 +30,9 @@ def compile (svg, instructions,size=None,frame=False,noload=False):
         raise Exception("root element not <svg>")
     ids = available_ids(svg)
 
+    ##for x in ids:
+    ##    print x
+
     print "instructions = ",instructions
 
     ## NOT NEEDED! 
@@ -56,11 +59,13 @@ def compile (svg, instructions,size=None,frame=False,noload=False):
     bind_ids = "".join([ "var fantomas_{cid} = e(\"{p}_{id}\");".format(p=prefix,cid=clean_id(id),id=id) for (id,_) in ids])
 
     # clean IDs because they will end up in identifiers
-    ids = [ (clean_id(id),elt) for (id,elt) in ids]
+    ###ids = [ (clean_id(id),elt) for (id,elt) in ids]
 
     setup_click = ""
     setup_hover = ""
     setup_select = ""
+
+    styling = ""
 
     creates = ""
     if "__create" in instructions:
@@ -69,24 +74,27 @@ def compile (svg, instructions,size=None,frame=False,noload=False):
                 options = "".join(["""o=document.createElement("option");o.setAttribute("value","{}");o.innerHTML="{}";x.appendChild(o);""".format(txt,txt) for txt in c[4:]])
                 creates += """(function() {{ var x=document.createElement("select");x.setAttribute("id","{prefix}_{id}"); x.style.position="absolute";x.style.left="{x}px";x.style.top="{y}px";x.style.width="100px";x.style.height="20px";{options}e("{prefix}___main_div").appendChild(x); }})();""".format(id=c[1],x=c[2],y=c[3],prefix=prefix,options=options)
                 ids.append((c[1],None))
-
-
-    for id in [id for (id,_) in ids if id in instructions if not id.startswith("__")]:
+            elif c[0] == "style":
+                styling += """.{prefix}_{name} {{ {body} }} """.format(prefix=prefix,name=clean_id(c[1]),body=c[2])
+                
+    for id in [id for (id,_) in ids if id in instructions and not id.startswith("__")]:
         ###print "checking id = {}".format(id)
+        # clean ID that can be used in identifiers
+        cid = clean_id(id)
         for event in instructions[id]:
             ###print "  checking event = {}".format(event)
             if event == "click":
-                actions = "".join([ compile_action(act) for act in instructions[id]["click"] ])
-                setup_click += "fantomas_{id}.addEventListener(\"click\",function() {{ if (this.fantomas_active) {{ {actions} }} }});".format(id=id,actions=actions)
-                setup_click += "fantomas_{id}.style.cursor=\"pointer\";".format(id=id);
+                actions = "".join([ compile_action(act,prefix) for act in instructions[id]["click"] ])
+                setup_click += "fantomas_{id}.addEventListener(\"click\",function() {{ if (this.fantomas_active) {{ {actions} }} }});".format(id=cid,actions=actions)
+                setup_click += "fantomas_{id}.style.cursor=\"pointer\";".format(id=cid);
             elif event == "hover":
-                do_actions = "".join([ save_action(i,act)+compile_action(act) for (i,act) in enumerate(instructions[id]["hover"])] )
+                do_actions = "".join([ save_action(i,act)+compile_action(act,prefix) for (i,act) in enumerate(instructions[id]["hover"])] )
                 undo_actions = "".join(reversed([ restore_action(i,act) for (i,act) in enumerate(instructions[id]["hover"]) ]))
-                setup_hover += "fantomas_{id}.addEventListener(\"mouseenter\",function() {{ if (this.fantomas_active) {{ {do_actions} }} }}); fantomas_{id}.addEventListener(\"mouseleave\",function() {{ if (this.fantomas_active) {{ {undo_actions} }} }});".format(id=id,do_actions=do_actions,undo_actions=undo_actions)
+                setup_hover += "fantomas_{id}.addEventListener(\"mouseenter\",function() {{ if (this.fantomas_active) {{ {do_actions} }} }}); fantomas_{id}.addEventListener(\"mouseleave\",function() {{ if (this.fantomas_active) {{ {undo_actions} }} }});".format(id=cid,do_actions=do_actions,undo_actions=undo_actions)
             elif event == "select":
                 change_code = ",".join([ """ "{value}" : function() {{ {actions} }} """.format(value=v,
-                                                                                               actions="".join([ compile_action(act) for act in instructions[id]["select"][v]])) for v in instructions[id]["select"].keys()])
-                setup_select += """{prefix}_{id}.addEventListener("change",function() {{ ({{ {change_code} }}[this.value])(); }});""".format(change_code=change_code,prefix=prefix,id=id)
+                                                                                               actions="".join([ compile_action(act,prefix) for act in instructions[id]["select"][v]])) for v in instructions[id]["select"].keys()])
+                setup_select += """e("{prefix}_{id}").addEventListener("change",function() {{ ({{ {change_code} }}[this.value])(); }});""".format(change_code=change_code,prefix=prefix,id=id)
                 
 
     if noload:
@@ -111,6 +119,8 @@ def compile (svg, instructions,size=None,frame=False,noload=False):
         svg.attrib["width"] = size["width"]
         svg.attrib["height"] = size["height"]
 
+    if styling:
+        output += """<style>{}</style>""".format(styling);
     output += ET.tostring(svg)
     output += "<script>"
     output += script
@@ -150,31 +160,42 @@ def prefix_all_ids (svg,prefix):
         elt.set("id","{}_{}".format(prefix,elt.get("id")))
 
 
-def compile_action (act):
+def compile_action (act,prefix=None):
     if act["action"] == "show":
         return mk_show_ids(act["elements"])
     elif act["action"] == "hide":
         return mk_hide_ids(act["elements"])
     elif act["action"] == "dim":
         return mk_dim_ids(act["elements"])
+    elif act["action"] == "style":
+        c = act["elements"][0]
+        return "".join(["""fantomas_{}.classList.add("{}_{}");""".format(clean_id(id),prefix,clean_id(c)) for id in act["elements"][1:]])
+    elif act["action"] == "unstyle":
+        c = act["elements"][0]
+        return "".join(["""fantomas_{}.classList.remove("{}_{}");""".format(clean_id(id),prefix,clean_id(c)) for id in act["elements"][1:]])
+        
     else:
         return ""
 
 
 def save_action (i,act):
     if act["action"] in ["show","hide"]:
-        return "".join([ """fantomas_{id}.saved_fantomas_display_{i}=fantomas_{id}.getAttribute("display");""".format(id=id,i=i) for id in act["elements"] ])
+        return "".join([ """fantomas_{id}.saved_fantomas_display_{i}=fantomas_{id}.getAttribute("display");""".format(id=clean_id(id),i=i) for id in act["elements"] ])
     elif act["action"] in ["dim"]: 
-        return "".join([ """fantomas_{id}.saved_fantomas_display_{i}=fantomas_{id}.getAttribute("display"); fantomas_{id}.saved_fantomas_opacity_{i}=fantomas_{id}.getAttribute("opacity"); fantomas_{id}.saved_fantomas_active_{i}=fantomas_{id}.fantomas_active;""".format(id=id,i=i) for id in act["elements"] ])
+        return "".join([ """fantomas_{id}.saved_fantomas_display_{i}=fantomas_{id}.getAttribute("display"); fantomas_{id}.saved_fantomas_opacity_{i}=fantomas_{id}.getAttribute("opacity"); fantomas_{id}.saved_fantomas_active_{i}=fantomas_{id}.fantomas_active;""".format(id=clean_id(id),i=i) for id in act["elements"] ])
+    elif act["action"] in ["style","unstyle"]:
+        return "".join([ """fantomas_{id}.saved_fantomas_class_{i}=fantomas_{id}.getAttribute("class");""".format(id=clean_id(id),i=i) for id in act["elements"][1:]])
     else:
         verbose("saving for action {} not implemented".format(act["action"]))
         return ""
 
 def restore_action (i,act):
     if act["action"] in ["show","hide"]:
-        return "".join([ """fantomas_{id}.setAttribute("display",fantomas_{id}.saved_fantomas_display_{i});""".format(id=id,i=i) for id in act["elements"] ])
+        return "".join([ """fantomas_{id}.setAttribute("display",fantomas_{id}.saved_fantomas_display_{i});""".format(id=clean_id(id),i=i) for id in act["elements"] ])
     elif act["action"] in ["dim"]: 
-        return "".join([ """fantomas_{id}.setAttribute("display",fantomas_{id}.saved_fantomas_display_{i}); fantomas_{id}.setAttribute("opacity",fantomas_{id}.saved_fantomas_opacity_{i}); fantomas_{id}.fantomas_active=fantomas_{id}.saved_fantomas_active_{i};""".format(id=id,i=i) for id in act["elements"] ])
+        return "".join([ """fantomas_{id}.setAttribute("display",fantomas_{id}.saved_fantomas_display_{i}); fantomas_{id}.setAttribute("opacity",fantomas_{id}.saved_fantomas_opacity_{i}); fantomas_{id}.fantomas_active=fantomas_{id}.saved_fantomas_active_{i};""".format(id=clean_id(id),i=i) for id in act["elements"] ])
+    elif act["action"] in ["style","unstyle"]:
+        return "".join([ """fantomas_{id}.setAttribute("class",fantomas_{id}.saved_fantomas_class_{i});""".format(id=clean_id(id),i=i) for id in act["elements"][1:]])
     else:
         verbose("saving for action {} not implemented".format(act["action"]))
         return ""
@@ -206,13 +227,13 @@ def get_hover_hide (instructions,id):
 
 
 def mk_show_ids (ids):
-    return "".join([ "s(fantomas_{id});".format(id=id) for id in ids])
+    return "".join([ "s(fantomas_{id});".format(id=clean_id(id)) for id in ids])
 
 def mk_hide_ids (ids):
-    return "".join([ "h(fantomas_{id});".format(id=id) for id in ids])
+    return "".join([ "h(fantomas_{id});".format(id=clean_id(id)) for id in ids])
 
 def mk_dim_ids (ids):
-    return "".join([ "d(fantomas_{id});".format(id=id) for id in ids])
+    return "".join([ "d(fantomas_{id});".format(id=clean_id(id)) for id in ids])
     
 
 
@@ -226,8 +247,12 @@ def parse_instructions (instrs_string):
     for line in instrs_string.split("\n"):
         #verbose("   "+line)
         #verbose("current = "+current)
-        if "#" in line:
-            line = line[:line.find("#")]
+
+### the tokenizer takes care of comments!
+#        if "#" in line:
+#            line = line[:line.find("#")]
+
+        
 
         tokens.extend(tok.tokenize(line))
 #        if line.strip():
@@ -245,6 +270,9 @@ def parse_instructions (instrs_string):
     #    verbose("  {}".format(instr.strip()))
 
     instructions = split_at_periods([ s for (_,s) in tokens])
+
+    # always have a __create
+    instrs["__create"] = []
 
     for instr in instructions:
         parts = split_at_arrows(instr)
@@ -269,13 +297,16 @@ def parse_instructions (instrs_string):
             instrs[name][event] = [ parse_action(part) for part in parts[1:]]
     return instrs
 
+
 def parse_create (create, instrs):
     # parse a create instruction
     # right now, only deal with create selector name x y v1 ...
     # result: __create: [ [selector, name, x, y, v1, ...] ]
 
     if len(create) > 5 and create[1] == "selector":
-        instrs["__create"] = [create[1:]]
+        instrs["__create"].append(create[1:])
+    elif len(create) > 3 and create[1] == "style":
+        instrs["__create"].append(create[1:])
     else:
         verbose("Ignoring unrecognized create instruction: {}".format(" ".join(create)))
 
@@ -304,7 +335,7 @@ def split_at_periods (lst):
     current = []
 
     for s in lst:
-        if s == ".":
+        if s in [".", ";"]:
             result.append(current)
             current = []
         else:
@@ -331,7 +362,7 @@ def parse_event (p):
 def parse_action (s):
     # p = tokenize(s)
     p = s
-    if len(p) > 0 and p[0] in ["show","hide","dim"]:
+    if len(p) > 0 and p[0] in ["show","hide","dim","style","unstyle"]:
         return {"action":p[0],
                 "elements":p[1:]}
     else:

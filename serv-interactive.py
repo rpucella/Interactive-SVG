@@ -83,6 +83,7 @@ def POST_edit_svg ():
     svg.attrib["y"] = "0";
     svg.attrib["width"] = "500";
     svg.attrib["height"] = "300";
+    svg.attrib["xml:space"] = "preserve";
 
     instr_string = None
 
@@ -141,7 +142,7 @@ def POST_compile_svg ():
              "width":ow,
              "height":oh}
 
-    ##core.set_verbose_flag(True)
+    ###core.set_verbose_flag(True)
 
     result = core.compile (svg_tree,instructions,size=size,frame=frame,noload=True)
 

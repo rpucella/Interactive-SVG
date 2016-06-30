@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <svg xmlns="http://www.w3.org/2000/svg" x="0" y="0" width="400" height="300" viewBox="0 0 600 400"  xml:space="preserve">
-   <g fill-opacity="0.7" stroke="black" stroke-width="5px" font-family="sans-serif">
+   <g fill-opacity="0.6" stroke="black" stroke-width="5px" font-family="sans-serif">
      <circle id="red" cx="300" cy="100" r="100" fill="red"
              transform="translate(0,50)" />
      <circle id="blue" cx="300" cy="100" r="100" fill="blue"
@@ -19,18 +19,20 @@
 
 <!--FANTOMAS
 
-click red -> show back -> hide text_red -> dim red.
+click red -> show back -> hide text_red -> unstyle highlight red -> dim red;
 
-hover red -> show text_red.
+hover red -> show text_red -> style highlight red;
 
-click blue -> show back -> hide text_blue -> dim blue.
+click blue -> show back -> hide text_blue -> unstyle highlight blue -> dim blue;
 
-hover blue -> show text_blue.
+hover blue -> show text_blue -> style highlight blue;
 
-click green -> show back -> hide text_green -> dim green.
+click green -> show back -> hide text_green -> unstyle highlight green -> dim green;
 
-hover green -> show text_green.
+hover green -> show text_green -> style highlight green;
 
-click back -> show red blue green -> hide back.
+click back -> show red blue green -> hide back;
+
+create style highlight " fill-opacity: 0.8; ";
 
 -->

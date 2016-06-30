@@ -24,8 +24,9 @@ def debug (str):
 
 TOKENS = [ (re.compile(r"->"),("THEN",lambda x:"->")),
            (re.compile(r"\."),("PERIOD",lambda x:".")),
-           (re.compile(r'".*?"'),("STRING",lambda x:x[1:-1])),
-           (re.compile(r"'.*?'"),("STRING",lambda x:x[1:-1])),
+           (re.compile(r";"),("SEMICOLON",lambda x:";")),
+           (re.compile(r'"[^"]*"'),("STRING",lambda x:x[1:-1])),
+           (re.compile(r"'[^']*'"),("STRING",lambda x:x[1:-1])),
            (re.compile(r"-?\.[0-9]+"),("NUMBER",lambda x:x)),  # float(x))),
            (re.compile(r"-?[0-9]+\.[0-9]+"),("NUMBER",lambda x:x)), # float(x))),
            (re.compile(r"-?[0-9]+[0-9]*"),("NUMBER",lambda x:x)),   #int(x))),
