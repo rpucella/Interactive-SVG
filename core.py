@@ -63,11 +63,12 @@ def compile (svg, instructions,size=None,frame=False,noload=False):
     setup_select = ""
 
     creates = ""
-    for c in instructions["__create"]:
-        if c[0] == "selector":
-            options = "".join(["""o=document.createElement("option");o.setAttribute("value","{}");o.innerHTML="{}";x.appendChild(o);""".format(txt,txt) for txt in c[4:]])
-            creates += """(function() {{ var x=document.createElement("select");x.setAttribute("id","{prefix}_{id}"); x.style.position="absolute";x.style.left="{x}px";x.style.top="{y}px";x.style.width="100px";x.style.height="20px";{options}e("{prefix}___main_div").appendChild(x); }})();""".format(id=c[1],x=c[2],y=c[3],prefix=prefix,options=options)
-            ids.append((c[1],None))
+    if "__create" in instructions:
+        for c in instructions["__create"]:
+            if c[0] == "selector":
+                options = "".join(["""o=document.createElement("option");o.setAttribute("value","{}");o.innerHTML="{}";x.appendChild(o);""".format(txt,txt) for txt in c[4:]])
+                creates += """(function() {{ var x=document.createElement("select");x.setAttribute("id","{prefix}_{id}"); x.style.position="absolute";x.style.left="{x}px";x.style.top="{y}px";x.style.width="100px";x.style.height="20px";{options}e("{prefix}___main_div").appendChild(x); }})();""".format(id=c[1],x=c[2],y=c[3],prefix=prefix,options=options)
+                ids.append((c[1],None))
 
 
     for id in [id for (id,_) in ids if id in instructions if not id.startswith("__")]:
