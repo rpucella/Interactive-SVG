@@ -5,10 +5,19 @@
 	"width":400, 
 	"title":"My Awesome Title!",
 	"data":[
-	    {"label":"First", "value":75},
-	    {"label":"Second", "value":50},
-	    {"label":"Third", "value":25},
-	    {"label":"Fourth", "value":10}
+	    {"label":"First", 
+	     "value":75, 
+	     "value_text":"75%", 
+	     "tooltip":"Count: 750   Base: 1000"},
+	    {"label":"Second", 
+	     "value":50, 
+	     "value_text":"50%", 
+	     "tooltip":"Count: 500   Base: 1000"},
+	    {"label":"Third", 
+	     "value":25, 
+	     "tooltip":"Count: 250   Base: 1000"},
+	    {"label":"Fourth", 
+	     "value":10}
 	]
     }
 </textarea>
@@ -69,22 +78,38 @@ function compile () {
     data.forEach(function (r,i) {
 
 	var barWidth = availWidth * (r.value / maxValue);
+
+	var text = r.value_text ? r.value_text : r.value;
 	
 	body += '<g id="group_{}">'.format(i);
 	body += '<text id="label_{}" x="20" y="{}" dy="0.35em" text-anchor="start">{}</text>'.format(i,top+i*rHeight+rHeight/4,r.label)
 	body += '<rect id="bar_{}" x="20" y="{}" height="{}" width="{}" fill="#467f1a" />'.format(i,top+i*rHeight+rHeight/2,rHeight/2,barWidth);
 	body += '<rect id="bar_highlight_{}" display="none" x="19" y="{}" height="{}" width="{}" fill="none" stroke="#003300" stroke-width="2px" />'.format(i,top+i*rHeight+rHeight/2-1,rHeight/2+2,barWidth+2);
-	body += '<text id="number_{}" x="{}" y="{}" dy="0.35em" text-anchor="start">{}</text>'.format(i,30+barWidth,top+i*rHeight+3*rHeight/4,r.value);
+	body += '<text id="number_{}" x="{}" y="{}" dy="0.35em" text-anchor="start">{}</text>'.format(i,30+barWidth,top+i*rHeight+3*rHeight/4,text);
 	body += '</g>';
 	height += rHeight;
+    });
 
-	instructions += 'hover bar_{} -> {} -> show bar_highlight_{}.\n'.format(i,dim_all_but(i),i);
+    // tooltips
+    data.forEach(function(r,i) { 
+	if (r.tooltip) {
+            body += '<g id="tooltip_{}" display="none">'.format(i);
+	    body += '<path fill="white" stroke="#003300" stroke-width="2px" d="M 30 {} h 5 l 5 -8 l 5 8 h 185 v {} h -200 Z" />'.format(top+i*rHeight+rHeight+12,rHeight,rHeight);
+	    body += '<text x="40" y="{}" dy="0.35em" text-anchor="start">{}</text>'.format(top+i*rHeight+rHeight+12+rHeight/2,r.tooltip);
+	    //body += '<rect x="30" y="{}" width="200" height="{}" fill="white" stroke="#003300" stroke-width="2px" />'.format(top+i*rHeight+rHeight,rHeight);
+	    body += '</g>';
+	}
+    });  
 
+    // build instructions
+    data.forEach(function(r,i) { 
+	var tooltip_instr = r.tooltip ? "tooltip_{} ".format(i) : "";
+	instructions += 'hover bar_{} -> {} -> show {} bar_highlight_{}.\n'.format(i,dim_all_but(i),tooltip_instr,i);
     });
 
     body += '<rect id="border" x="0" y="0" width="{}" height="{}" fill="none" stroke="#dddddd" />'.format(width,height);
     
-    result_svg = '<svg x=\"0\" y=\"0\" width=\"{}\" height=\"{}\" viewBox="0 0 {} {}">{}</svg>'.format(width,height,width,height,body);
+    result_svg = '<svg x=\"0\" y=\"0\" width=\"{}\" height=\"{}\" viewBox="0 0 {} {}" xml:space="preserve"><g font-family="sans-serif">{}</g></svg>'.format(width,height,width,height,body);
 
     result_svg += '\n<!--FANTOMAS\n{}\n-->'.format(instructions);
 

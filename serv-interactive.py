@@ -16,7 +16,7 @@ def announce (s):
     print "--------------------------------------------------"
     print s
 
-@get("/"):
+@get("/")
 def GET_root ():
     redirect("/upload_svg")
     
