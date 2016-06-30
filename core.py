@@ -30,6 +30,8 @@ def compile (svg, instructions,size=None,frame=False,noload=False):
         raise Exception("root element not <svg>")
     ids = available_ids(svg)
 
+    print "instructions = ",instructions
+
     ## NOT NEEDED! 
     ##fix_display(svg)
 
@@ -58,9 +60,20 @@ def compile (svg, instructions,size=None,frame=False,noload=False):
 
     setup_click = ""
     setup_hover = ""
+    setup_select = ""
 
-    for id in [id for (id,_) in ids if id in instructions]:
+    creates = ""
+    for c in instructions["__create"]:
+        if c[0] == "selector":
+            options = "".join(["""o=document.createElement("option");o.setAttribute("value","{}");o.innerHTML="{}";x.appendChild(o);""".format(txt,txt) for txt in c[4:]])
+            creates += """(function() {{ var x=document.createElement("select");x.setAttribute("id","{prefix}_{id}"); x.style.position="absolute";x.style.left="{x}px";x.style.top="{y}px";x.style.width="100px";x.style.height="20px";{options}e("{prefix}___main_div").appendChild(x); }})();""".format(id=c[1],x=c[2],y=c[3],prefix=prefix,options=options)
+            ids.append((c[1],None))
+
+
+    for id in [id for (id,_) in ids if id in instructions if not id.startswith("__")]:
+        ###print "checking id = {}".format(id)
         for event in instructions[id]:
+            ###print "  checking event = {}".format(event)
             if event == "click":
                 actions = "".join([ compile_action(act) for act in instructions[id]["click"] ])
                 setup_click += "fantomas_{id}.addEventListener(\"click\",function() {{ if (this.fantomas_active) {{ {actions} }} }});".format(id=id,actions=actions)
@@ -69,19 +82,26 @@ def compile (svg, instructions,size=None,frame=False,noload=False):
                 do_actions = "".join([ save_action(i,act)+compile_action(act) for (i,act) in enumerate(instructions[id]["hover"])] )
                 undo_actions = "".join(reversed([ restore_action(i,act) for (i,act) in enumerate(instructions[id]["hover"]) ]))
                 setup_hover += "fantomas_{id}.addEventListener(\"mouseenter\",function() {{ if (this.fantomas_active) {{ {do_actions} }} }}); fantomas_{id}.addEventListener(\"mouseleave\",function() {{ if (this.fantomas_active) {{ {undo_actions} }} }});".format(id=id,do_actions=do_actions,undo_actions=undo_actions)
+            elif event == "select":
+                change_code = ",".join([ """ "{value}" : function() {{ {actions} }} """.format(value=v,
+                                                                                               actions="".join([ compile_action(act) for act in instructions[id]["select"][v]])) for v in instructions[id]["select"].keys()])
+                setup_select += """{prefix}_{id}.addEventListener("change",function() {{ ({{ {change_code} }}[this.value])(); }});""".format(change_code=change_code,prefix=prefix,id=id)
+                
 
     if noload:
-        script_base = """(function() {{ {setup}{bind_ids}{setup_click}{setup_hover} }})();"""
+        script_base = """(function() {{ {setup}{creates}{bind_ids}{setup_click}{setup_hover}{setup_select} }})();"""
     else:
-        script_base = """window.addEventListener(\"load\",function() {{ {setup}{bind_ids}{setup_click}{setup_hover} }});"""
+        script_base = """window.addEventListener(\"load\",function() {{ {setup}{creates}{bind_ids}{setup_click}{setup_hover}{setup_select} }});"""
     script = script_base.format(bind_ids = bind_ids,
                                 setup=setup,
+                                creates=creates,
                                 setup_click=setup_click,
-                                setup_hover=setup_hover)
+                                setup_hover=setup_hover,
+                                setup_select=setup_select)
     if frame:
         output += "<html><body>"
-    output +=  "<div>"
-        # suppress namespace for svg
+    output +=  """<div id="{}___main_div" style="position: relative; left: 0px; top:0px;">""".format(prefix)
+    # suppress namespace for svg
     ET.register_namespace('',xmlns_svg)
 
     if size:
@@ -136,7 +156,6 @@ def compile_action (act):
         return mk_hide_ids(act["elements"])
     elif act["action"] == "dim":
         return mk_dim_ids(act["elements"])
-
     else:
         return ""
 
@@ -229,23 +248,35 @@ def parse_instructions (instrs_string):
     for instr in instructions:
         parts = split_at_arrows(instr)
 
+        if len(parts) == 1 and len(parts[0]) > 1 and parts[0][0] == "create":
+            parse_create(parts[0],instrs)
+            continue
+
         if len(parts) < 2: 
             raise Exception("Parsing error - cannot parse {}".format(instr))
 
-        (name,event) = parse_event(parts[0])
+        (name,event,extras) = parse_event(parts[0])
         if name not in instrs:
             instrs[name] = {}
         # clobber old event for that name if one exists
-        instrs[name][event] = [ parse_action(part) for part in parts[1:]]
-        # for part in parts[1:]:
-        #     (action,targets) = parse_action(part)
-
-        #     if name not in instrs:
-        #         instrs[name] = {}
-        #     if event not in instrs[name]:
-        #         instrs[name][event] = {}
-        #     instrs[name][event][action] = targets
+        # FIXME - merge instead??
+        if event == "select":
+            if "select" not in instrs[name]:
+                instrs[name]["select"] = {}
+            instrs[name]["select"][extras[0]] = [ parse_action(part) for part in parts[1:]]
+        else:
+            instrs[name][event] = [ parse_action(part) for part in parts[1:]]
     return instrs
+
+def parse_create (create, instrs):
+    # parse a create instruction
+    # right now, only deal with create selector name x y v1 ...
+    # result: __create: [ [selector, name, x, y, v1, ...] ]
+
+    if len(create) > 5 and create[1] == "selector":
+        instrs["__create"] = [create[1:]]
+    else:
+        verbose("Ignoring unrecognized create instruction: {}".format(" ".join(create)))
 
 
 def split_at_arrows (lst):
@@ -288,11 +319,12 @@ def tokenize (s):
     # really, should not break up strings "..." or '...'
     return s.split()
 
-def parse_event (s):
-    p = s # tokenize(s)
-    if len(p) != 2:
+def parse_event (p):
+    if len(p) < 2:
         raise Exception("Parsing error - cannot parse event part of instruction {}".format(s))
-    return (p[1],p[0])
+    if p[0] == "select" and len(p) > 2:
+        return (p[1],p[0],p[2:])
+    return (p[1],p[0],[])
 
  
 def parse_action (s):

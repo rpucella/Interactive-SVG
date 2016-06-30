@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<svg xmlns="http://www.w3.org/2000/svg" x="0" y="0" width="400" height="300" viewBox="0 0 600 400"  xml:space="preserve">
+  <rect id="red" x="50" y="100" width="500" height="250" fill="red" stroke="black" stroke-width="5px" />
+  <rect id="green" x="50" y="100" width="500" height="250" fill="green" stroke="black" stroke-width="5px" display="none" />
+  <rect id="blue" x="50" y="100" width="500" height="250" fill="blue" stroke="black" stroke-width="5px" display="none" />
+  <rect id="border" x="0" y="0" width="600" height="400" fill="none" stroke="#dddddd" />
+</svg>
+
+<!--FANTOMAS
+
+create selector choose_color 50 30 Red Green Blue.
+
+select choose_color Red -> hide green blue -> show red.
+
+select choose_color Green -> hide red blue -> show green.
+
+select choose_color Blue -> hide red green -> show blue.
+
+click red -> hide red.
+
+-->
