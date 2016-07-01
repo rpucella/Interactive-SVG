@@ -2,8 +2,8 @@
 <form action="/edit_svg" id="main_form" method="post" enctype="multipart/form-data">
     <textarea id="code" name="json_code" placeholder="JSON description" cols="100" rows="40">
     {
-	"width":400,
-	"views": [ { "type":"chart-bar",
+	"width":500,
+	"views": [ { "type":"chart-bars",
 		     "name":"first-chart",
 		     "title":"My Awesome Title!",
 		     "data":[ {"label":"First", 
@@ -22,7 +22,7 @@
 			    ]
 		   },
 		   
-		   { "type":"chart-bar",
+		   { "type":"chart-bars",
 		     "name":"second-chart",
 		     "title":"My Other Awesome Title!",
 		     "data":[ {"label":"Another first", 
@@ -38,7 +38,51 @@
 			       "value_text":"22%",
 			       "tooltip":"Count: 220   Base: 1000"}
 			    ]
-		   }		   
+		   },
+		   { "type":"chart-lines",
+		     "name":"sample-line-chart",
+		     "title":"Line Chart Example",
+		     "color": {"A": "green",
+			       "B": "blue"
+			      },
+		     "data":[ {"category": "A",
+			       "value": 100,
+			       "year": 2010},
+			      {"category": "A",
+			       "value": 90,
+			       "year": 2011},
+			      {"category": "A",
+			       "value": 50,
+			       "year": 2012},
+			      {"category": "A",
+			       "value": 20,
+			       "year": 2013},
+			      {"category": "A",
+			       "value": 90,
+			       "year": 2014},
+			      {"category": "A",
+			       "value": 80,
+			       "year": 2015},
+			      {"category": "B",
+			       "value": 40,
+			       "year": 2010},
+			      {"category": "B",
+			       "value": 60,
+			       "year": 2011},
+			      {"category": "B",
+			       "value": 70,
+			       "year": 2012},
+			      {"category": "B",
+			       "value": 20,
+			       "year": 2013},
+			      {"category": "B",
+			       "value": 800,
+			       "year": 2014},
+			      {"category": "B",
+			       "value": 90,
+			       "year": 2015}
+			    ]
+		   }
 		 ]
     }
 </textarea>
@@ -65,85 +109,168 @@ function compile () {
     
     console.log("JSON = ",json);
 
-    
     var width = json.width || 500;
 
     var initialComputedHeight = 100;
 
     var maxComputedHeight = 0;
 
-    var rHeight = 50;
-
     var body = ""
+    var instructions = ""
 
     var views = json.views || [];
     console.log(views);
 
-    var availWidth = width - 70;   // 20 left margin, 20 right margin, 30 for text?
-	
-    var instructions = ""
-
     views.forEach(function(v) {
 
-	var top = 0;
+	// HORIZONTAL BAR CHARTS
 
-	// reset computed height to its initial value
-	var computedHeight = initialComputedHeight;
+	if (v.type === "chart-bars") {
+	    var top = 0;
+
+	    var availWidth = width - 70;   // 20 left margin, 20 right margin, 30 for text?
 	
-	var data = v.data || [];
-	
-	var maxValue = Math.max.apply(null,data.map(function(r) { return r.value; }));
-	var dim_all_but = function(j) { 
-	    var result = "dim ";
-	    data.forEach(function(r,i) { if (i !== j) { result += ' {}_group_{}'.format(v.name,i); } });
-	    return result;
-	}
-
-	body += '<g id="{}">'.format(v.name);
-
-	if (v.title) {
+	    // reset computed height to its initial value
+	    var computedHeight = initialComputedHeight;
 	    
-	    body += '<text id="{}_title" text-anchor="middle" x="{}" y="50" dy="0.35em">{}</text>'.format(v.name,width/2,v.title);
-	    computedHeight += 100;
-	    top += 100;
-	}
+	    var rHeight = 50;
 
-	data.forEach(function (r,i) {
+	    var data = v.data || [];
 	    
-	    var barWidth = availWidth * (r.value / maxValue);
-	    
-	    var text = r.value_text ? r.value_text : r.value;
-	    
-	    body += '<g id="{}_group_{}">'.format(v.name,i);
-	    body += '<text id="{}_label_{}" x="20" y="{}" dy="0.35em" text-anchor="start" font-size="{}pt">{}</text>'.format(v.name,i,top+i*rHeight+rHeight/4,rHeight/5,r.label)
-	    body += '<rect id="{}_bar_{}" x="20" y="{}" height="{}" width="{}" fill="#669933" />'.format(v.name,i,top+i*rHeight+rHeight/2,rHeight/2,barWidth);
-	    body += '<rect id="{}_bar_highlight_{}" display="none" x="19" y="{}" height="{}" width="{}" fill="none" stroke="#003300" stroke-width="2px" />'.format(v.name,i,top+i*rHeight+rHeight/2-1,rHeight/2+2,barWidth+2);
-	    body += '<text id="{}_number_{}" x="{}" y="{}" dy="0.35em" text-anchor="start">{}</text>'.format(v.name,i,30+barWidth,top+i*rHeight+3*rHeight/4,text);
-	    body += '</g>';
-	    computedHeight += rHeight;
-	});
-
-	// tooltips
-	data.forEach(function(r,i) { 
-	    if (r.tooltip) {
-		body += '<g id="{}_tooltip_{}" display="none">'.format(v.name,i);
-		body += '<path fill="white" stroke="#003300" stroke-width="2px" d="M 30 {} h 5 l 5 -8 l 5 8 h 185 v {} h -200 Z" />'.format(top+i*rHeight+rHeight+12,rHeight,rHeight);
-		body += '<text x="40" y="{}" dy="0.35em" text-anchor="start">{}</text>'.format(top+i*rHeight+rHeight+12+rHeight/2,r.tooltip);
-		//body += '<rect x="30" y="{}" width="200" height="{}" fill="white" stroke="#003300" stroke-width="2px" />'.format(top+i*rHeight+rHeight,rHeight);
-		body += '</g>';
+	    var maxValue = Math.max.apply(null,data.map(function(r) { return r.value; }));
+	    var dim_all_but = function(j) { 
+		var result = "dim ";
+		data.forEach(function(r,i) { if (i !== j) { result += ' {}_group_{}'.format(v.name,i); } });
+		return result;
 	    }
-	});
 
-	body += '</g>';
+	    body += '<g id="{}">'.format(v.name);
 
-	// build instructions
-	data.forEach(function(r,i) { 
-	    var tooltip_instr = r.tooltip ? "{}_tooltip_{} ".format(v.name,i) : "";
-	    instructions += 'hover {}_bar_{} -> {} -> show {} {}_bar_highlight_{}.\n'.format(v.name,i,dim_all_but(i),tooltip_instr,v.name,i);
-	});
+	    if (v.title) {
+		
+		body += '<text id="{}_title" text-anchor="middle" x="{}" y="50" dy="0.35em">{}</text>'.format(v.name,width/2,v.title);
+		computedHeight += 100;
+		top += 100;
+	    }
 
-	maxComputedHeight = Math.max(maxComputedHeight,computedHeight);
+	    data.forEach(function (r,i) {
+		
+		var barWidth = availWidth * (r.value / maxValue);
+		
+		var text = r.value_text ? r.value_text : r.value;
+		
+		body += '<g id="{}_group_{}">'.format(v.name,i);
+		body += '<text id="{}_label_{}" x="20" y="{}" dy="0.35em" text-anchor="start" font-size="{}pt">{}</text>'.format(v.name,i,top+i*rHeight+rHeight/4,rHeight/5,r.label)
+		body += '<rect id="{}_bar_{}" x="20" y="{}" height="{}" width="{}" fill="#669933" />'.format(v.name,i,top+i*rHeight+rHeight/2,rHeight/2,barWidth);
+		body += '<rect id="{}_bar_highlight_{}" display="none" x="19" y="{}" height="{}" width="{}" fill="none" stroke="#003300" stroke-width="2px" />'.format(v.name,i,top+i*rHeight+rHeight/2-1,rHeight/2+2,barWidth+2);
+		body += '<text id="{}_number_{}" x="{}" y="{}" dy="0.35em" text-anchor="start">{}</text>'.format(v.name,i,30+barWidth,top+i*rHeight+3*rHeight/4,text);
+		body += '</g>';
+		computedHeight += rHeight;
+	    });
 
+	    // tooltips
+	    data.forEach(function(r,i) { 
+		if (r.tooltip) {
+		    body += '<g id="{}_tooltip_{}" display="none">'.format(v.name,i);
+		    body += '<path fill="white" stroke="#003300" stroke-width="2px" d="M 30 {} h 5 l 5 -8 l 5 8 h 185 v {} h -200 Z" />'.format(top+i*rHeight+rHeight+12,rHeight,rHeight);
+		    body += '<text x="40" y="{}" dy="0.35em" text-anchor="start">{}</text>'.format(top+i*rHeight+rHeight+12+rHeight/2,r.tooltip);
+		    //body += '<rect x="30" y="{}" width="200" height="{}" fill="white" stroke="#003300" stroke-width="2px" />'.format(top+i*rHeight+rHeight,rHeight);
+		    body += '</g>';
+		}
+	    });
+
+	    body += '</g>';
+
+	    // build instructions
+	    data.forEach(function(r,i) { 
+		var tooltip_instr = r.tooltip ? "{}_tooltip_{} ".format(v.name,i) : "";
+		instructions += 'hover {}_bar_{} -> {} -> show {} {}_bar_highlight_{}.\n'.format(v.name,i,dim_all_but(i),tooltip_instr,v.name,i);
+	    });
+
+	    maxComputedHeight = Math.max(maxComputedHeight,computedHeight);
+
+	} else if (v.type==="chart-lines") {
+
+	    var top = 0;
+
+	    var availWidth = width - 40;   // 20 left margin, 20 right margin, 30 for text?
+	
+	    // reset computed height to its initial value
+	    var computedHeight = initialComputedHeight;
+	    
+	    var rHeight = 50;
+
+	    var data = v.data || [];
+
+	    var years = data.map(function(r) { return r.year; });
+	    var minYear = Math.min.apply(null,years);
+	    var maxYear = Math.max.apply(null,years);
+	    var spacingYear = availWidth/(maxYear-minYear);
+	    var maxValue = Math.max.apply(null,data.map(function(r) { return r.value; }));
+
+	    body += '<g id="{}">'.format(v.name);
+
+	    if (v.title) {
+		body += '<text id="{}_title" text-anchor="middle" x="{}" y="50" dy="0.35em">{}</text>'.format(v.name,width/2,v.title);
+		computedHeight += 100;
+		top += 100;
+	    }
+
+	    computedHeight += 300;
+
+	    body += '<line x1="20" x2="{}" y1="{}" y2="{}" stroke="black" stroke-width="1px" />'.format(width-20,computedHeight-50,computedHeight-50);
+
+	    var dg = groupBy(data,"category");
+	    
+	    Object.keys(dg).forEach(function (cat,i) {
+
+		var color = v.color[cat] || "black";
+
+		var previous = null;
+
+		body += '<g id="{}_group_{}">'.format(v.name,i);
+		dg[cat].sort(function(a,b) { return a.year - b.year; });
+		dg[cat].forEach(function(r,j) {
+		    var ratio = r.value / maxValue;
+		    var x = 20+(r.year-minYear)*spacingYear;
+		    var y = computedHeight-50-(computedHeight-50-top)*ratio;
+		    body += '<circle cx="{}" cy="{}" r="3" fill="{}" />'.format(x,y,color);
+		    if (previous) {
+			body += '<line x1="{}" y1="{}" x2="{}" y2="{}" stroke="{}" stroke-width="2px" />'.format(previous.x,previous.y,x,y,color);
+		    }
+		    previous = {x:x,y:y};
+		});
+		body += '</g>'
+
+	    });
+
+
+/*	    // tooltips
+	    data.forEach(function(r,i) { 
+		if (r.tooltip) {
+		    body += '<g id="{}_tooltip_{}" display="none">'.format(v.name,i);
+		    body += '<path fill="white" stroke="#003300" stroke-width="2px" d="M 30 {} h 5 l 5 -8 l 5 8 h 185 v {} h -200 Z" />'.format(top+i*rHeight+rHeight+12,rHeight,rHeight);
+		    body += '<text x="40" y="{}" dy="0.35em" text-anchor="start">{}</text>'.format(top+i*rHeight+rHeight+12+rHeight/2,r.tooltip);
+		    //body += '<rect x="30" y="{}" width="200" height="{}" fill="white" stroke="#003300" stroke-width="2px" />'.format(top+i*rHeight+rHeight,rHeight);
+		    body += '</g>';
+		}
+	    });
+*/
+
+	    body += '</g>';
+/*
+	    // build instructions
+	    data.forEach(function(r,i) { 
+		var tooltip_instr = r.tooltip ? "{}_tooltip_{} ".format(v.name,i) : "";
+		instructions += 'hover {}_bar_{} -> {} -> show {} {}_bar_highlight_{}.\n'.format(v.name,i,dim_all_but(i),tooltip_instr,v.name,i);
+	    });
+*/
+	    maxComputedHeight = Math.max(maxComputedHeight,computedHeight);
+
+
+	}
+
+	    
     });
     
     var height = json.height || maxComputedHeight;
@@ -159,6 +286,18 @@ function compile () {
     document.getElementById("main_form").submit();
 }
 
+function groupBy (data,field) { 
+    
+    result = {};
+    data.forEach(function(r) { 
+	if (r[field] in result) {
+	    result[r[field]].push(r);
+	} else {
+	    result[r[field]]=[r];
+	}
+    });
+    return result;
+}
 
 (function(){
 
