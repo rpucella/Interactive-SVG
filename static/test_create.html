@@ -16,8 +16,8 @@
   <input id="flag" type="hidden" name="source" value="chart">
 </form>
 
-<button id="example-1-button">Example 1</button>
-<button id="example-2-button">Example 2</button>
+<button id="example-1-button">Bar Charts Example</button>
+<button id="example-2-button">Line Charts Example</button>
 <button id="compile">Create Interactive SVG</button>
 
 <div style=" display:none; ">
@@ -67,7 +67,7 @@
 </div>
 <div id="example-2-code">
 {
-    "width":500,
+    "width":800,
     "views": [{ "type":"chart-lines",
 		 "name":"sample-line-chart",
 		 "title":"Line Chart Example",
@@ -147,8 +147,19 @@ function compile () {
 
     var maxComputedHeight = 0;
 
-    var body = ""
     var instructions = ""
+
+    d3.select("#svg-output > *").remove();
+
+    var svg_def = d3.select("#svg-output")
+	.append("svg")
+	.attr("x",0)
+	.attr("y",0)
+	.attr("width",width)
+	.attr("xml:space","preserve");
+
+    svg = svg_def.append("g")
+	.attr("font-family","sans-serif");
 
     var views = json.views || [];
     console.log(views);
@@ -176,11 +187,19 @@ function compile () {
 		return result;
 	    }
 
-	    body += '<g id="{}">'.format(v.name);
+	    var g = svg.append("g")
+		.attr("id",v.name);
 
 	    if (v.title) {
 		
-		body += '<text id="{}_title" text-anchor="middle" x="{}" y="50" dy="0.35em">{}</text>'.format(v.name,width/2,v.title);
+		g.append("text")
+		    .attr("id","{}_title".format(v.name))
+		    .attr("text-anchor","middle")
+		    .attr("x",width/2)
+		    .attr("y",50)
+		    .attr("dy","0.35em")
+		    .text(v.title);
+
 		computedHeight += 100;
 		top += 100;
 	    }
@@ -191,27 +210,69 @@ function compile () {
 		
 		var text = r.value_text ? r.value_text : r.value;
 		
-		body += '<g id="{}_group_{}">'.format(v.name,i);
-		body += '<text id="{}_label_{}" x="20" y="{}" dy="0.35em" text-anchor="start" font-size="{}pt">{}</text>'.format(v.name,i,top+i*rHeight+rHeight/4,rHeight/5,r.label)
-		body += '<rect id="{}_bar_{}" x="20" y="{}" height="{}" width="{}" fill="#669933" />'.format(v.name,i,top+i*rHeight+rHeight/2,rHeight/2,barWidth);
-		body += '<rect id="{}_bar_highlight_{}" display="none" x="19" y="{}" height="{}" width="{}" fill="none" stroke="#003300" stroke-width="2px" />'.format(v.name,i,top+i*rHeight+rHeight/2-1,rHeight/2+2,barWidth+2);
-		body += '<text id="{}_number_{}" x="{}" y="{}" dy="0.35em" text-anchor="start">{}</text>'.format(v.name,i,30+barWidth,top+i*rHeight+3*rHeight/4,text);
-		body += '</g>';
+		var g2 = g.append("g")
+		    .attr("id","{}_group_{}".format(v.name,i));
+
+		g2.append("text")
+		    .attr("id","{}_label_{}".format(v.name,i))
+		    .attr("x",20)
+		    .attr("y",top+i*rHeight+rHeight/4)
+		    .attr("dy","0.35em")
+		    .attr("text-anchor","start")
+		    .attr("font-size","{}pt".format(rHeight/5))
+		    .text(r.label);
+
+		g2.append("rect")
+		    .attr("id","{}_bar_{}".format(v.name,i))
+		    .attr("x",20)
+		    .attr("y",top+i*rHeight+rHeight/2)
+		    .attr("height",rHeight/2)
+		    .attr("width",barWidth)
+		    .attr("fill","#669933");
+
+		g2.append("rect")
+		    .attr("id","{}_bar_highlight_{}".format(v.name,i))
+		    .attr("display","none")
+		    .attr("x",19)
+		    .attr("y",top+i*rHeight+rHeight/2-1)
+		    .attr("height",rHeight/2+2)
+		    .attr("width",barWidth+2)
+		    .attr("fill","none")
+		    .attr("stroke","#003300")
+		    .attr("stroke-width","2px");
+
+		g2.append("text")
+		    .attr("id","{}_number_{}".format(v.name,i))
+		    .attr("x",barWidth+30)
+		    .attr("y",top+i*rHeight+3*rHeight/4)
+		    .attr("dy","0.35em")
+		    .attr("text-anchor","start")
+		    .text(text);
+
 		computedHeight += rHeight;
 	    });
 
 	    // tooltips
 	    data.forEach(function(r,i) { 
 		if (r.tooltip) {
-		    body += '<g id="{}_tooltip_{}" display="none">'.format(v.name,i);
-		    body += '<path fill="white" stroke="#003300" stroke-width="2px" d="M 30 {} h 5 l 5 -8 l 5 8 h 185 v {} h -200 Z" />'.format(top+i*rHeight+rHeight+12,rHeight,rHeight);
-		    body += '<text x="40" y="{}" dy="0.35em" text-anchor="start">{}</text>'.format(top+i*rHeight+rHeight+12+rHeight/2,r.tooltip);
-		    //body += '<rect x="30" y="{}" width="200" height="{}" fill="white" stroke="#003300" stroke-width="2px" />'.format(top+i*rHeight+rHeight,rHeight);
-		    body += '</g>';
+		    var g2 = g.append("g")
+			.attr("id","{}_tooltip_{}".format(v.name,i))
+			.attr("display","none");
+
+		    g2.append("path")
+			.attr("fill","white")
+			.attr("stroke","#003300")
+			.attr("stroke-width","2px")
+			.attr("d","M 30 {} h 5 l 5 -8 l 5 8 h 185 v {} h -200 Z".format(top+i*rHeight+rHeight+12,rHeight));
+
+		    g2.append("text")
+			.attr("x",40)
+			.attr("y",top+i*rHeight+rHeight+12+rHeight/2)
+			.attr("dy","0.35em")
+			.attr("text-anchor","start")
+			.text(r.tooltip);
 		}
 	    });
-
-	    body += '</g>';
 
 	    // build instructions
 	    data.forEach(function(r,i) { 
@@ -225,7 +286,7 @@ function compile () {
 
 	    var top = 0;
 
-	    var availWidth = width - 40;   // 20 left margin, 20 right margin, 30 for text?
+	    var availWidth = width - 40;   // 20 left margin, 20 right margin
 	
 	    // reset computed height to its initial value
 	    var computedHeight = initialComputedHeight;
@@ -234,25 +295,57 @@ function compile () {
 
 	    var data = v.data || [];
 
-	    var years = data.map(function(r) { return r.year; });
-	    var minYear = Math.min.apply(null,years);
-	    var maxYear = Math.max.apply(null,years);
+	    var years = d3.extent(data,function(r) { return r.year; });
+	    var maxYear = years[1], minYear = years[0];
 	    var spacingYear = availWidth/(maxYear-minYear);
-	    var maxValue = Math.max.apply(null,data.map(function(r) { return r.value; }));
 
-	    body += '<g id="{}">'.format(v.name);
+	    var maxValue = d3.max(data,function(r) { return r.value; });
+
+	    console.log("maxValue =",maxValue);
+
+	    var g = svg.append("g")
+		.attr("id",v.name);
 
 	    if (v.title) {
-		body += '<text id="{}_title" text-anchor="middle" x="{}" y="50" dy="0.35em">{}</text>'.format(v.name,width/2,v.title);
+
+		g.append("text")
+		    .attr("id","{}_title".format(v.name))
+		    .attr("text-anchor","middle")
+		    .attr("x",width/2)
+		    .attr("y",50)
+		    .attr("dy","0.35em")
+		    .text(v.title);
+
 		computedHeight += 100;
 		top += 100;
 	    }
 
 	    computedHeight += 300;
 
-	    body += '<line x1="20" x2="{}" y1="{}" y2="{}" stroke="black" stroke-width="1px" />'.format(width-20,computedHeight-50,computedHeight-50);
+	    var xScale = d3.scaleLinear()
+		.domain(years)
+		.range([0,availWidth]);
 
+	    var axis = d3.axisBottom(xScale)
+		.ticks(years[1]-years[0]+1,"d");
+
+	    g.append("g")
+		.attr("transform","translate({},{})".format(20,computedHeight-50))
+		.call(axis);
+/*	    
+	    g.append("line")
+		.attr("x1",20)
+		.attr("x2",width-20)
+		.attr("y1",computedHeight-50)
+		.attr("y2",computedHeight-50)
+		.attr("stroke","black")
+		.attr("stroke-width","1px");
+*/
 	    var dg = groupBy(data,"category");
+
+	    var yScale = d3.scaleLinear()
+		.domain([0,maxValue])
+		.range([computedHeight-50,top]);
 	    
 	    Object.keys(dg).forEach(function (cat,i) {
 
@@ -260,45 +353,36 @@ function compile () {
 
 		var previous = null;
 
-		body += '<g id="{}_group_{}">'.format(v.name,i);
+		var g2 = g.append("g")
+		    .attr("id","{}_group_{}".format(v.name,i));
+
 		dg[cat].sort(function(a,b) { return a.year - b.year; });
 		dg[cat].forEach(function(r,j) {
-		    var ratio = r.value / maxValue;
-		    var x = 20+(r.year-minYear)*spacingYear;
-		    var y = computedHeight-50-(computedHeight-50-top)*ratio;
-		    body += '<circle cx="{}" cy="{}" r="3" fill="{}" />'.format(x,y,color);
+
+		    console.log("r.value=",r.value, "  y=",yScale(r.value));
+
+		    g2.append("circle")
+			.attr("cx",20+xScale(r.year))
+			.attr("cy",yScale(r.value))
+			.attr("r",3)
+			.attr("fill",color);
+
 		    if (previous) {
-			body += '<line x1="{}" y1="{}" x2="{}" y2="{}" stroke="{}" stroke-width="2px" />'.format(previous.x,previous.y,x,y,color);
+			g2.append("line")
+			    .attr("x1",previous.x)
+			    .attr("y1",previous.y)
+			    .attr("x2",20+xScale(r.year))
+			    .attr("y2",yScale(r.value))
+			    .attr("stroke",color)
+			    .attr("stroke-width","2px");
+
 		    }
-		    previous = {x:x,y:y};
+		    previous = {x:20+xScale(r.year),y:yScale(r.value)};
 		});
-		body += '</g>'
 
 	    });
 
-
-/*	    // tooltips
-	    data.forEach(function(r,i) { 
-		if (r.tooltip) {
-		    body += '<g id="{}_tooltip_{}" display="none">'.format(v.name,i);
-		    body += '<path fill="white" stroke="#003300" stroke-width="2px" d="M 30 {} h 5 l 5 -8 l 5 8 h 185 v {} h -200 Z" />'.format(top+i*rHeight+rHeight+12,rHeight,rHeight);
-		    body += '<text x="40" y="{}" dy="0.35em" text-anchor="start">{}</text>'.format(top+i*rHeight+rHeight+12+rHeight/2,r.tooltip);
-		    //body += '<rect x="30" y="{}" width="200" height="{}" fill="white" stroke="#003300" stroke-width="2px" />'.format(top+i*rHeight+rHeight,rHeight);
-		    body += '</g>';
-		}
-	    });
-*/
-
-	    body += '</g>';
-/*
-	    // build instructions
-	    data.forEach(function(r,i) { 
-		var tooltip_instr = r.tooltip ? "{}_tooltip_{} ".format(v.name,i) : "";
-		instructions += 'hover {}_bar_{} -> {} -> show {} {}_bar_highlight_{}.\n'.format(v.name,i,dim_all_but(i),tooltip_instr,v.name,i);
-	    });
-*/
 	    maxComputedHeight = Math.max(maxComputedHeight,computedHeight);
-
 
 	}
 
@@ -307,9 +391,20 @@ function compile () {
     
     var height = json.height || maxComputedHeight;
 
-    body += '<rect id="border" x="0" y="0" width="{}" height="{}" fill="none" stroke="#dddddd" />'.format(width,height);
-    
-    result_svg = '<svg x=\"0\" y=\"0\" width=\"{}\" height=\"{}\" viewBox="0 0 {} {}" xml:space="preserve"><g font-family="sans-serif">{}</g></svg>'.format(width,height,width,height,body);
+    svg_def
+	.attr("height",height)
+	.attr("viewBox","0 0 {} {}".format(width,height))
+
+    svg.append("rect")
+	.attr("id","border")
+	.attr("x",0)
+	.attr("y",0)
+	.attr("width",width)
+	.attr("height",height)
+	.attr("fill","none")
+	.attr("stroke","#dddddd");
+
+    result_svg = d3.select("#svg-output").html();
 
     result_svg += '\n<!--FANTOMAS\n{}\n-->'.format(instructions);
 
