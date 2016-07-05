@@ -286,7 +286,7 @@ function compile () {
 
 	    var top = 0;
 
-	    var availWidth = width - 40;   // 20 left margin, 20 right margin
+	    var availWidth = width - 70;   // 50 left margin, 20 right margin
 	
 	    // reset computed height to its initial value
 	    var computedHeight = initialComputedHeight;
@@ -326,27 +326,26 @@ function compile () {
 		.domain(years)
 		.range([0,availWidth]);
 
-	    var axis = d3.axisBottom(xScale)
+	    var xAxis = d3.axisBottom(xScale)
 		.ticks(years[1]-years[0]+1,"d");
 
 	    g.append("g")
-		.attr("transform","translate({},{})".format(20,computedHeight-50))
-		.call(axis);
-/*	    
-	    g.append("line")
-		.attr("x1",20)
-		.attr("x2",width-20)
-		.attr("y1",computedHeight-50)
-		.attr("y2",computedHeight-50)
-		.attr("stroke","black")
-		.attr("stroke-width","1px");
-*/
+		.attr("transform","translate({},{})".format(50,computedHeight-50))
+		.call(xAxis);
+
 	    var dg = groupBy(data,"category");
 
 	    var yScale = d3.scaleLinear()
 		.domain([0,maxValue])
 		.range([computedHeight-50,top]);
 	    
+            var yAxis = d3.axisLeft(yScale);
+
+	    var yAxisSvg = g.append("g")
+		.attr("transform","translate({},{})".format(40,0))
+		.call(yAxis);
+	    yAxisSvg.selectAll(".domain").attr("display","none");
+
 	    Object.keys(dg).forEach(function (cat,i) {
 
 		var color = v.color[cat] || "black";
@@ -362,23 +361,57 @@ function compile () {
 		    console.log("r.value=",r.value, "  y=",yScale(r.value));
 
 		    g2.append("circle")
-			.attr("cx",20+xScale(r.year))
+			.attr("id","{}_circle_{}_{}".format(v.name,i,r.year))
+			.attr("cx",50+xScale(r.year))
 			.attr("cy",yScale(r.value))
 			.attr("r",3)
 			.attr("fill",color);
+
+		    g2.append("circle")
+			.attr("id","{}_circle_{}_{}_pointer".format(v.name,i,r.year))
+			.attr("cx",50+xScale(r.year))
+			.attr("cy",yScale(r.value))
+			.attr("r",7)
+			.attr("fill","none")
+			.attr("stroke","none")
+			.attr("pointer-events","visible");
+
+		    g2.append("line")
+			.attr("id","{}_hline_{}_{}".format(v.name,i,r.year))
+			.attr("x1",40)
+			.attr("x2",50+xScale(r.year)-7)
+			.attr("y1",yScale(r.value))
+			.attr("y2",yScale(r.value))
+			.attr("stroke","#666666")
+			.attr("stroke-dasharray","3,3")
+			.attr("display","none");
+
+		    g2.append("line")
+			.attr("id","{}_vline_{}_{}".format(v.name,i,r.year))
+			.attr("x1",50+xScale(r.year))
+			.attr("x2",50+xScale(r.year))
+			.attr("y1",yScale(r.value)-7)
+			.attr("y2",yScale(0))
+			.attr("stroke","#666666")
+			.attr("stroke-dasharray","3,3")
+			.attr("display","none");
 
 		    if (previous) {
 			g2.append("line")
 			    .attr("x1",previous.x)
 			    .attr("y1",previous.y)
-			    .attr("x2",20+xScale(r.year))
+			    .attr("x2",50+xScale(r.year))
 			    .attr("y2",yScale(r.value))
 			    .attr("stroke",color)
 			    .attr("stroke-width","2px");
 
 		    }
-		    previous = {x:20+xScale(r.year),y:yScale(r.value)};
+		    previous = {x:50+xScale(r.year),y:yScale(r.value)};
+
+		    instructions += "hover {}_circle_{}_{}_pointer -> style highlight_{} {}_circle_{}_{}_pointer -> show {}_hline_{}_{} {}_vline_{}_{}; \n".format(v.name,i,r.year,i,v.name,i,r.year,v.name,i,r.year,v.name,i,r.year);
 		});
+
+		instructions += "create style highlight_{} \"stroke: {};\";\n".format(i,color);
 
 	    });
 
@@ -386,9 +419,8 @@ function compile () {
 
 	}
 
-	    
     });
-    
+
     var height = json.height || maxComputedHeight;
 
     svg_def
