@@ -23,9 +23,11 @@ def verbose (msg):
         print >>sys.stderr, msg
 
 xmlns_svg = "http://www.w3.org/2000/svg"
+xmlns_xlink = "https://www.w3.org/1999/xlink"
 
 def compile (svg, instructions,size=None,frame=False,noload=False):
-    ns = {"svg":"http://www.w3.org/2000/svg"}
+    ns = {"svg":"http://www.w3.org/2000/svg",
+          "xlink":"http://www.w3.org/1999/xlink"}
     if svg.tag != "svg" and svg.tag != "{{{}}}svg".format(xmlns_svg):
         raise Exception("root element not <svg>")
     ids = available_ids(svg)
@@ -44,6 +46,15 @@ def compile (svg, instructions,size=None,frame=False,noload=False):
     uid = uuid.uuid4().hex
     verbose("UUID {}".format(uid))
 
+    print "USE="
+    print svg.findall(".//use")
+    print "clipPath="
+    print svg.findall(".//clipPath")
+    
+    for x in svg.findall(".//svg:use",ns):
+        print x
+        print x.attrib
+    
     prefix = "fantomas_{}".format(uid)
     prefix_all_ids(svg,prefix)
     
@@ -64,6 +75,7 @@ def compile (svg, instructions,size=None,frame=False,noload=False):
     setup_click = ""
     setup_hover = ""
     setup_select = ""
+    setup_hover_start = ""
 
     styling = ""
 
@@ -91,6 +103,9 @@ def compile (svg, instructions,size=None,frame=False,noload=False):
                 do_actions = "".join([ save_action(i,act)+compile_action(act,prefix) for (i,act) in enumerate(instructions[id]["hover"])] )
                 undo_actions = "".join(reversed([ restore_action(i,act) for (i,act) in enumerate(instructions[id]["hover"]) ]))
                 setup_hover += "fantomas_{id}.addEventListener(\"mouseenter\",function() {{ if (this.fantomas_active) {{ {do_actions} }} }}); fantomas_{id}.addEventListener(\"mouseleave\",function() {{ if (this.fantomas_active) {{ {undo_actions} }} }});".format(id=cid,do_actions=do_actions,undo_actions=undo_actions)
+            elif event == "hover-start":
+                do_actions = "".join([ compile_action(act,prefix) for act in instructions[id]["hover-start"] ])
+                setup_hover_start += "fantomas_{id}.addEventListener(\"mouseenter\",function() {{ if (this.fantomas_active) {{ {do_actions} }} }});".format(id=cid,do_actions=do_actions)
             elif event == "select":
                 change_code = ",".join([ """ "{value}" : function() {{ {actions} }} """.format(value=v,
                                                                                                actions="".join([ compile_action(act,prefix) for act in instructions[id]["select"][v]])) for v in instructions[id]["select"].keys()])
@@ -98,7 +113,7 @@ def compile (svg, instructions,size=None,frame=False,noload=False):
                 
 
     if noload:
-        script_base = """(function() {{ {setup}{creates}{bind_ids}{setup_click}{setup_hover}{setup_select} }})();"""
+        script_base = """(function() {{ {setup}{creates}{bind_ids}{setup_click}{setup_hover}{setup_hover_start}{setup_select} }})();"""
     else:
         script_base = """window.addEventListener(\"load\",function() {{ {setup}{creates}{bind_ids}{setup_click}{setup_hover}{setup_select} }});"""
     script = script_base.format(bind_ids = bind_ids,
@@ -106,6 +121,7 @@ def compile (svg, instructions,size=None,frame=False,noload=False):
                                 creates=creates,
                                 setup_click=setup_click,
                                 setup_hover=setup_hover,
+                                setup_hover_start=setup_hover_start,
                                 setup_select=setup_select)
     if frame:
         output += "<html><body>"
@@ -158,6 +174,15 @@ def prefix_all_ids (svg,prefix):
 
     for elt in svg.findall(".//*[@id]"):
         elt.set("id","{}_{}".format(prefix,elt.get("id")))
+
+    for elt in svg.findall(".//*[@clip-path]"):
+        p = elt.get("clip-path")
+        elt.set("clip-path",p.replace("#","#"+prefix+"_"))  # hack!
+
+    xmlns_xlink = "http://www.w3.org/1999/xlink"
+    for elt in svg.findall(".//*[@xlink:href]",{"xlink":xmlns_xlink}):
+        p = elt.get("{{{}}}href".format(xmlns_xlink))
+        elt.set("xlink:href",p.replace("#","#"+prefix+"_")) # hack!
 
 
 def compile_action (act,prefix=None):
