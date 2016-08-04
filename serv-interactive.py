@@ -73,6 +73,7 @@ def POST_edit_svg ():
                                  id=id)
 
     ET.register_namespace('',core.xmlns_svg)
+    ET.register_namespace('xlink',core.xmlns_xlink)
 
     original_x = svg.attrib["x"] if "x" in svg.attrib else "0"
     original_y = svg.attrib["y"] if "y" in svg.attrib else "0"
