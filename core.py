@@ -65,7 +65,9 @@ def compile (svg, instructions,size=None,frame=False,noload=False):
 
     output = ""
 
-    setup = """var e=function(i){var x=document.getElementById(i);x.fantomas_active=true;return x;};var s=function(i){i.setAttribute("display","display");i.setAttribute("opacity","1");i.fantomas_active=true;};var h=function(i){i.setAttribute("display","none");};var d=function(i){i.setAttribute("display","display");i.setAttribute("opacity","0.25");i.fantomas_active=false;};"""
+    setup = """var e=function(i){var x=document.getElementById(i);x.fantomas_active=true;return x;};var s=function(i){i.setAttribute("display","display");i.setAttribute("opacity","1");i.fantomas_active=true;};var h=function(i){i.setAttribute("display","none");};var d=function(i){i.setAttribute("display","display");i.setAttribute("opacity","0.25");i.fantomas_active=false;}; var evHdl=function(el,ev,f) { $(el).on(ev,f); }; var hasC=function(el,c) { var s=$(el); if (s.attr("class")) { return s.attr("class").indexOf(c) >= 0; } else { return false; }}; var addC=function(el,c) { var s=$(el); if (!(hasC(el,c))) { var cs=s.attr("class"); if (cs) { s.attr("class",(cs+" "+c).trim()); } else { s.attr("class",c.trim());}}}; var remC=function(el,c) { var s=$(el); if (hasC(el,c)) { var cs=s.attr("class"); s.attr("class",cs.replace(c," ").trim()); }};"""
+
+    ###if (el.addEventListener) { el.addEventListener(ev,f);} else if (el.attachEvent) { el.attachEvent("on"+ev,f); } };"""
 
     bind_ids = "".join([ "var fantomas_{cid} = e(\"{p}_{id}\");".format(p=prefix,cid=clean_id(id),id=id) for (id,_) in ids])
 
@@ -98,28 +100,28 @@ def compile (svg, instructions,size=None,frame=False,noload=False):
             ###print "  checking event = {}".format(event)
             if event == "click":
                 actions = "".join([ compile_action(act,prefix) for act in instructions[id]["click"] ])
-                setup_click += "fantomas_{id}.addEventListener(\"click\",function() {{ if (this.fantomas_active) {{ {actions} }} }});".format(id=cid,actions=actions)
+                setup_click += "evHdl(fantomas_{id},\"click\",function() {{ if (this.fantomas_active) {{ {actions} }} }});".format(id=cid,actions=actions)
                 setup_click += "fantomas_{id}.style.cursor=\"pointer\";".format(id=cid);
             elif event == "hover":
                 do_actions = "".join([ save_action(i,act)+compile_action(act,prefix) for (i,act) in enumerate(instructions[id]["hover"])] )
                 undo_actions = "".join(reversed([ restore_action(i,act) for (i,act) in enumerate(instructions[id]["hover"]) ]))
-                setup_hover += "fantomas_{id}.addEventListener(\"mouseenter\",function() {{ if (this.fantomas_active) {{ {do_actions} }} }}); fantomas_{id}.addEventListener(\"mouseleave\",function() {{ if (this.fantomas_active) {{ {undo_actions} }} }});".format(id=cid,do_actions=do_actions,undo_actions=undo_actions)
+                setup_hover += "evHdl(fantomas_{id},\"mouseenter\",function() {{ if (this.fantomas_active) {{ {do_actions} }} }}); evHdl(fantomas_{id},\"mouseleave\",function() {{ if (this.fantomas_active) {{ {undo_actions} }} }});".format(id=cid,do_actions=do_actions,undo_actions=undo_actions)
             elif event == "hover-start":
                 do_actions = "".join([ compile_action(act,prefix) for act in instructions[id]["hover-start"] ])
-                setup_hover_start += "fantomas_{id}.addEventListener(\"mouseenter\",function() {{ if (this.fantomas_active) {{ {do_actions} }} }});".format(id=cid,do_actions=do_actions)
+                setup_hover_start += "evHdl(fantomas_{id},\"mouseenter\",function() {{ if (this.fantomas_active) {{ {do_actions} }} }});".format(id=cid,do_actions=do_actions)
             elif event == "hover-end":
                 do_actions = "".join([ compile_action(act,prefix) for act in instructions[id]["hover-end"] ])
-                setup_hover_end += "fantomas_{id}.addEventListener(\"mouseleave\",function() {{ if (this.fantomas_active) {{ {do_actions} }} }});".format(id=cid,do_actions=do_actions)
+                setup_hover_end += "evHdl(fantomas_{id},\"mouseleave\",function() {{ if (this.fantomas_active) {{ {do_actions} }} }});".format(id=cid,do_actions=do_actions)
             elif event == "select":
                 change_code = ",".join([ """ "{value}" : function() {{ {actions} }} """.format(value=v,
                                                                                                actions="".join([ compile_action(act,prefix) for act in instructions[id]["select"][v]])) for v in instructions[id]["select"].keys()])
-                setup_select += """e("{prefix}_{id}").addEventListener("change",function() {{ ({{ {change_code} }}[this.value])(); }});""".format(change_code=change_code,prefix=prefix,id=id)
+                setup_select += """evHdl(e("{prefix}_{id}"),"change",function() {{ ({{ {change_code} }}[this.value])(); }});""".format(change_code=change_code,prefix=prefix,id=id)
                 
 
     if noload:
         script_base = """(function() {{ {setup}{creates}{bind_ids}{setup_click}{setup_hover}{setup_hover_start}{setup_hover_end}{setup_select} }})();"""
     else:
-        script_base = """window.addEventListener(\"load\",function() {{ {setup}{creates}{bind_ids}{setup_click}{setup_hover}{setup_hover_start}{setup_hover_end}{setup_select} }});"""
+        script_base = """evHdl(window,\"load\",function() {{ {setup}{creates}{bind_ids}{setup_click}{setup_hover}{setup_hover_start}{setup_hover_end}{setup_select} }});"""
     script = script_base.format(bind_ids = bind_ids,
                                 setup=setup,
                                 creates=creates,
@@ -199,10 +201,14 @@ def compile_action (act,prefix=None):
         return mk_dim_ids(act["elements"])
     elif act["action"] == "style":
         c = act["elements"][0]
-        return "".join(["""fantomas_{}.classList.add("{}_{}");""".format(clean_id(id),prefix,clean_id(c)) for id in act["elements"][1:]])
+###        return "".join(["""fantomas_{}.classList.add("{}_{}");""".format(clean_id(id),prefix,clean_id(c)) for id in act["elements"][1:]])
+        return "".join(["""addC(fantomas_{},"{}_{}");""".format(clean_id(id),prefix,clean_id(c)) for id in act["elements"][1:]])
+###        return "".join(["""$(fantomas_{}).attr("class",($(fantomas_{}).attr("class")+" {}_{}").trim());""".format(clean_id(id),clean_id(id),prefix,clean_id(c)) for id in act["elements"][1:]])
     elif act["action"] == "unstyle":
         c = act["elements"][0]
-        return "".join(["""fantomas_{}.classList.remove("{}_{}");""".format(clean_id(id),prefix,clean_id(c)) for id in act["elements"][1:]])
+###        return "".join(["""fantomas_{}.classList.remove("{}_{}");""".format(clean_id(id),prefix,clean_id(c)) for id in act["elements"][1:]])
+        return "".join(["""remC(fantomas_{},"{}_{}");""".format(clean_id(id),prefix,clean_id(c)) for id in act["elements"][1:]])
+###        return "".join(["""if ($(fantomas_{}).attr("class")) {{ $(fantomas_{}).attr("class",$(fantomas_{}).attr("class").replace(new RegExp("(\\s|^){}_{}(\\s|$)","g"),"").trim());}}; """.format(clean_id(id),clean_id(id),clean_id(id),prefix,clean_id(c)) for id in act["elements"][1:]])
         
     else:
         return ""
