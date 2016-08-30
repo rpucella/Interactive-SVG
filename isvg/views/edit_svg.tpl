@@ -98,8 +98,13 @@ color: white;
     </div>
     
   </div>
+
+
   
   <script>
+
+// checkout: http://stackoverflow.com/questions/13688814/uploading-a-file-with-a-single-button
+
   
 var ids = {{!ids}};
 
