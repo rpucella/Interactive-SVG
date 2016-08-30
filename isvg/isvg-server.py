@@ -152,9 +152,9 @@ def POST_compile_svg ():
 
 ROOT = "static"
 
-@get('/<path:path>')
-def static (path="index.html"):
-    return static_file(path, root=ROOT)
+#@get('/<path:path>')
+#def static (path="index.html"):
+#    return static_file(path, root=ROOT)
 
 
 # can run non-interactively by calling with 
@@ -165,7 +165,7 @@ def static (path="index.html"):
 if __name__ == "__main__":
     if len(sys.argv) > 1:
         port = int(sys.argv[1])
-        run(reloader=True,server=PasteServer, host='0.0.0.0', port=port)
+        run(reloader=True,server=PasteServer, host='0.0.0.0', port=port, debug=True)
     else:
         print "Usage: server <port>"
 else:
