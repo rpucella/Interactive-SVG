@@ -112,7 +112,7 @@ def POST_edit_svg ():
         
 
     return template("edit_svg",
-                    page_title = "Interactive SVG",
+                    page_title = "Interactive SVG Editor",
                     code_svg = ET.tostring(svg),
                     code_ids = result,
                     initial_instr = instr_string,
@@ -158,11 +158,6 @@ def static (path="index.html"):
     return static_file(path, root=ROOT)
 
 
-def main (p):
-    print "Serving folder",ROOT
-    run(server=PasteServer, host='0.0.0.0', port=p)
-
-
 # can run non-interactively by calling with 
 #  python -i serv-dataviz.py
 # it will give an error (port is not given)
@@ -171,7 +166,7 @@ def main (p):
 if __name__ == "__main__":
     if len(sys.argv) > 1:
         port = int(sys.argv[1])
-        main(port)
+        run(reloader=True,server=PasteServer, host='0.0.0.0', port=port)
     else:
         print "Usage: server <port>"
 else:

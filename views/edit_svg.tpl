@@ -27,7 +27,6 @@
 }
 
 .ui-button {
-/*  margin-top: 1px; */
   margin-bottom: 2px;
 }
 
@@ -44,52 +43,62 @@ color: #1e1e1e;
 }
 
 .interaction-btn.ui-state-default {
-background: rgba(34,127,182,0.3);
+background: rgba(51,51,51,0.2);
 color: #333333;
 }
 
 .interaction-btn.ui-state-hover {
 border-color: #227fb6;
-background: rgba(34,127,182,0.5);
-color: #1e1e1e;
+background: rgba(51,51,51,0.6);
+color: white;
 }
 
     </style>
-
+    
   </head>
-
-  <body>
-
-    <div style="position: absolute; left: 0; right: 0; top: 0; bottom: 0; min-width: 900px; min-height: 600px;">
-
-      <p style="margin: 10px; position: absolute; left: 20px; top: 20px;"><b>SVG:</b></p>
-
-      <div id="svg" style="margin: 10px; position: absolute; left: 20px; top: 50px; bottom: 50%; right: 40%;">
-  	  {{!code_svg}}
-      </div>
-
-
-      <div style="margin: 10px; margin-left: 50px; position: absolute; left: 60%; top: 20px; right: 20px; bottom: 120px; overflow-y: auto;">
-	<p style="margin-top: 0;"><b>ELEMENT IDENTIFIERS:</b></p>
-	<ul style="list-style: none; margin-left: 0; padding-left: 0;">
-	  {{!code_ids}}
-	</ul>
-      </div>
-
-      <div style="margin: 10px; margin-left: 50px; position: absolute; left: 60%; height: 100px; bottom: 20px; right: 20px;">
-	<button id="button-test" class="interaction-btn" style="width: 100%; max-width: 300px; display: block;">Test</button>
-	<button id="button-export" class="interaction-btn" style="width: 100%; max-width: 300px; display: block;">Export HTML</button>
-        <a id="export-download" style="display:none;"></a>
-	<button id="button-help" class="interaction-btn" style="width: 100%; max-width: 300px; display: block;">Help</button>
-      </div>
-      
-      <div style="margin: 10px; position: absolute; left: 20px; top: 50%; bottom: 20px; right: 40%;">
-	<p style="margin-top: 0;"><b>INTERACTION SCRIPT:</b></p>
-	<textarea id="instructions" style="width: 100%; padding: 5px; border: 1px solid #dddddd; height: 90%;" >{{initial_instr}}</textarea>
-      </div>
-
+  
+<body>
+  
+  <div style="position: absolute; left: 0; right: 0; top: 0; bottom: 0; min-width: 900px; min-height: 600px;">
+    
+    <!-- side title -->
+    <div style="background: #333333; position: absolute; left: 0; width: 50px; top: 0; bottom: 0;">
+      <svg height="600px" width="50px" viewBox="0 0 50 600">
+	<text transform="rotate(-90 25,10)" x="25" y="10" dy="0.35em" fill="white" text-anchor="end" font-size="30px">INTERACTIVE SVG EDITOR</text>
+      </svg>
     </div>
-      
+
+    <!-- SVG display -->
+    <p style="margin: 10px; position: absolute; left: 50px; top: 0;"><b>SVG:</b> <button>Load</button></p>
+    <div id="svg" style="margin: 10px; position: absolute; left: 50px; top: 50px; bottom: 50%; right: 30%;">
+      {{!code_svg}}
+    </div>
+
+    <!-- Interaction script -->
+    <div style="margin: 10px; position: absolute; left: 50px; top: 50%; bottom: 60px; right: 30%;">
+      <p style="margin-top: 0;"><b>INTERACTION SCRIPT:</b> <button>Load</button></p>
+      <textarea id="instructions" style="width: 100%; padding: 5px; border: 1px solid #dddddd; height: 90%;" >{{initial_instr}}</textarea>
+    </div>
+
+    
+    <!-- Identifiers list -->
+    <div style="margin: 10px; position: absolute; left: 70%; top: 0; right: 10px; bottom: 60px; overflow-y: auto;">
+      <p style="margin-top: 0;"><b>ELEMENT IDENTIFIERS:</b></p>
+      <ul style="list-style: none; margin-left: 0; padding-left: 0;">
+	{{!code_ids}}
+      </ul>
+    </div>
+
+    <!-- Buttons -->
+    <div style="margin: 10px; position: absolute; left: 50px; height: 30px; bottom: 0; right: 10px;">
+      <button id="button-test" class="interaction-btn" style="width: 100%; height: 30px; max-width: 200px; ">Test</button>
+      <button id="button-export" class="interaction-btn" style="width: 100%; height: 30px; max-width: 200px; ">Export HTML</button>
+      <button id="button-help" class="interaction-btn" style="width: 100%; height: 30px; max-width: 200px; ">Help</button>
+      <a id="export-download" style="display:none;"></a>
+    </div>
+    
+  </div>
+  
   <script>
   
 var ids = {{!ids}};
