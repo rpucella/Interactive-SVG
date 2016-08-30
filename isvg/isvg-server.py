@@ -20,7 +20,6 @@ def announce (s):
 def GET_root ():
     redirect("/upload_svg")
     
-
 @get("/upload_svg")
 def GET_upload_svg ():
 
