@@ -1,5 +1,6 @@
 
-from core import *
+#from core import *
+import sys
 
 
 def show_available_ids (ids):
@@ -52,6 +53,7 @@ def main (svgfile, insfile,frame,noload):
 
 
 if __name__ == "__main__":
+    print sys.path[0]
     if len(sys.argv) < 2:
         print "Usage: compile <svg> [<instructions>] [-frame] [-noload]"
     else:
