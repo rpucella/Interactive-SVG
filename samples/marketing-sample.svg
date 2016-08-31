@@ -3080,3 +3080,37 @@
 	</g>
 </g>
 </svg>
+<!--FM INTERACTIVE SVG SCRIPT
+
+
+click OwnershipSmartphone
+-> hide Text OwnershipSmartphone OwnershipTablet TimeSpentSmartphone TimeSpentTablet AccessSmartphone AccessTablet
+-> show OwnershipSmartphoneBIG BackArrow.
+
+click OwnershipTablet
+-> hide Text OwnershipSmartphone OwnershipTablet TimeSpentSmartphone TimeSpentTablet AccessSmartphone AccessTablet
+-> show OwnershipTabletBIG BackArrow.
+
+click TimeSpentSmartphone
+-> hide Text OwnershipSmartphone OwnershipTablet TimeSpentSmartphone TimeSpentTablet AccessSmartphone AccessTablet
+-> show TimeSpentSmartphoneBIG BackArrow.
+
+click TimeSpentTablet
+-> hide Text OwnershipSmartphone OwnershipTablet TimeSpentSmartphone TimeSpentTablet AccessSmartphone AccessTablet
+-> show TimeSpentTabletBIG BackArrow.
+
+click AccessSmartphone
+-> hide Text OwnershipSmartphone OwnershipTablet TimeSpentSmartphone TimeSpentTablet AccessSmartphone AccessTablet
+-> show AccessSmartphoneBIG BackArrow.
+
+click AccessTablet
+-> hide Text OwnershipSmartphone OwnershipTablet TimeSpentSmartphone TimeSpentTablet AccessSmartphone AccessTablet
+-> show AccessTabletBIG BackArrow.
+
+click BackArrow
+-> show Text OwnershipSmartphone OwnershipTablet TimeSpentSmartphone TimeSpentTablet AccessSmartphone AccessTablet
+-> hide BackArrow OwnershipSmartphoneBIG OwnershipTabletBIG TimeSpentSmartphoneBIG TimeSpentTabletBIG AccessSmartphoneBIG AccessTabletBIG.
+
+hover BackArrow -> show BackArrowHover.
+
+-->

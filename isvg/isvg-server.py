@@ -1,20 +1,28 @@
 
-from bottle import get, post, run, request, static_file, abort, redirect, template
+############################################################
+# Server-based interactive SVG editor
+#
+#
+# to use:
+#   python isvg-server 8080
+#
+# Point your browser to localhost:8080
+#
 
-# use a better web server
+
+
+from bottle import get, post, run, request, static_file, abort, redirect, template
+# use a better web server than the default
 from bottle import PasteServer
 
 import os
 import sys
 
 import xml.etree.ElementTree as ET
+
 import core
 
 
-
-def announce (s):
-    print "--------------------------------------------------"
-    print s
 
 @get("/")
 def GET_root ():
@@ -24,15 +32,11 @@ def GET_root ():
 @get("/upload_svg")
 def GET_upload_svg ():
 
-    announce("GET /upload_svg")
-    
-    return static_file("test_upload.html","static")
+    redirect("/edit_svg")
 
 
 @get("/create_svg")
 def GET_chart ():
-
-    announce("GET /create_svg")
 
     return static_file("test_create.html","static")
 
@@ -40,18 +44,14 @@ def GET_chart ():
 @get("/edit_svg")
 def GET_edit_svg ():
 
-    announce("GET /edit_svg")
+    # So why is this a 
 
     return template("edit_svg",
                     page_title = "Interactive SVG Editor",
                     code_svg = "",
                     code_ids = "",
                     initial_instr = "",
-                    original_x = 0,
-                    original_y = 0,
-                    original_width = 0,
-                    original_height = 0,
-                    ids = "[]")
+                    ids = [])
 
 
 @post("/upload_svg")
@@ -93,7 +93,7 @@ def POST_upload_svg ():
 
     upload.file.seek(0)
     for line in upload.file:
-        if line.strip() == "<!--FANTOMAS":
+        if line.strip() == "<!--FM INTERACTIVE SVG SCRIPT":
             instr_string = ""
         elif line.strip() == "-->":
             break
@@ -112,22 +112,14 @@ def POST_upload_svg ():
             "original_height": original_height,
             "ids": [ id for (id,_) in ids]}
 
-    # return template("edit_svg",
-    #                 page_title = "Interactive SVG Editor",
-    #                 code_svg = ET.tostring(svg),
-    #                 code_ids = result,
-    #                 initial_instr = instr_string,
-    #                 original_x = original_x,
-    #                 original_y = original_y,
-    #                 original_width = original_width,
-    #                 original_height = original_height,
-    #                 ids = "[{}]".format(",".join([ "\"{}\"".format(id) for (id,_) in ids])))
 
-    
+
+
+# 
+# NO LONGER NEEDED?
+#    
 @post("/edit_svg")
 def POST_edit_svg ():
-
-    announce("POST /edit_svg")
 
     source = request.forms.get("source")
 
@@ -210,6 +202,7 @@ def POST_edit_svg ():
                     ids = "[{}]".format(",".join([ "\"{}\"".format(id) for (id,_) in ids])))
 
 
+
 @post("/compile_svg")
 def POST_compile_svg ():
 
@@ -230,20 +223,11 @@ def POST_compile_svg ():
              "width":ow,
              "height":oh}
 
-    ###core.set_verbose_flag(True)
-
     result = core.compile (svg_tree,instructions,size=size,frame=frame,noload=True)
 
     return result
 
     
-
-ROOT = "static"
-
-#@get('/<path:path>')
-#def static (path="index.html"):
-#    return static_file(path, root=ROOT)
-
 
 # can run non-interactively by calling with 
 #  python -i serv-dataviz.py

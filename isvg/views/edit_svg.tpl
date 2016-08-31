@@ -89,9 +89,9 @@ p {
 
     <!-- Buttons -->
     <div style="position: absolute; left: 50px; height: 50px; bottom: 0; right: 0; background: #333333;">
-      <button id="button-test" class="interaction-btn" style="margin: 10px; width: 100%; height: 30px; max-width: 200px; ">Test</button>
-      <button id="button-export" class="interaction-btn" style="margin: 10px; width: 100%; height: 30px; max-width: 200px; ">Export HTML</button>
-      <button id="button-help" class="interaction-btn" style="margin: 10px; width: 100%; height: 30px; max-width: 200px; ">Help</button>
+      <button id="button-help" class="interaction-btn" style="margin: 10px; width: 100%; height: 30px; max-width: 200px; float: right;">Help</button>
+      <button id="button-export" class="interaction-btn" style="margin: 10px; width: 100%; height: 30px; max-width: 200px; float: right;">Export HTML</button>
+      <button id="button-test" class="interaction-btn" style="margin: 10px; width: 100%; height: 30px; max-width: 200px; float: right;">Test</button>
       <a id="export-download" style="display:none;"></a>
     </div>
     
@@ -101,69 +101,94 @@ p {
   
   <script>
 
-// checkout: http://stackoverflow.com/questions/13688814/uploading-a-file-with-a-single-button
 
-  
-//var ids = {{!ids}};
+$(run)
 
-$("#svg svg").attr("x",0).attr("y",0).attr("width","100%").attr("height","100%");
+var GLOBAL = {
+    original_x:0,
+    original_y:0, 
+    original_width:0, 
+    original_height:0
+};
 
-$("#button-test").button();
-$("#button-export").button();
-$("#button-help").button();
+function enableSVGButtons () { 
+    $("#button-test").button("enable");
+    $("#button-export").button("enable");
+}
 
-// $("#button-load-svg").button();
 
-$("#button-test").click(testInteractive);
+function disableSVGButtons () { 
+    $("#button-test").button("disable");
+    $("#button-export").button("disable");
+}
 
-// REINSTATE
-//$("#button-export").click(exportInteractive);
+function run () { 
+    
+    $("#svg svg").attr("x",0).attr("y",0).attr("width","100%").attr("height","100%");
+    
+    $("#button-test").button();
+    $("#button-export").button();
+    $("#button-help").button();
+    
+    $("#button-test").click(testInteractive);
+    $("#button-export").click(exportInteractive);
 
-$("#button-help").button("disable");
-$("#button-export").button("disable");
+    // $("#button-load-svg").button();
+    
+    if ("{{!code_svg}}"!=="") {
+	enableSVGButtons();
+    } else {
+	disableSVGButtons();
+    }
+	
+    $("#button-help").button("disable");
+    
+    $("#svg_file").on("change",uploadSVG);
+}
 
-//$("#button-load-svg").click(function() {
-$("#svg_file").on("change",function() {
+function uploadSVG () {
     var files = $("#svg_file").prop("files");
-
+    
     /* CHECK THAT FILES IS NOT EMPTY! */
 
-    if (files.length > 0) {
-
+    if (files.length===0) {
+	return;
+    }
+    
     // START A LOADING SPINNER HERE
-
+    
     // Create a formdata object and add the files
-	var data = new FormData();
-	data.append("file",files[0]);
-
-	console.log(files[0]);
-	console.log(data);
-
+    var data = new FormData();
+    data.append("file",files[0]);
+    
+    //console.log(files[0]);
+    //console.log(data);
+    
     $.ajax({
-        url: "/upload_svg",
-        type: "POST",
-        data: data,
-        cache: false,
-        contentType: false,  // "multipart/form-data",  -- do not specify, otherwise JQ doesn't send boundary string
-        dataType: "json",
-        processData: false, // Don't process the files
-        success: function(data, textStatus, jqXHR)
-        {
+	url: "/upload_svg",
+	type: "POST",
+	data: data,
+	cache: false,
+	contentType: false,  // "multipart/form-data",  -- do not specify, otherwise JQ doesn't send boundary string
+	dataType: "json",
+	processData: false, // Don't process the files
+	success: function(data, textStatus, jqXHR)
+	{
 	    console.log("RESULT = ",data);
 	    $("#svg").html(data.svg);
-	    original_x = data.original_x;
-	    original_y = data.original_y;
-	    original_width = data.original_width;
-	    original_height = data.original_height;
-
+	    GLOBAL.original_x = data.original_x;
+	    GLOBAL.original_y = data.original_y;
+	    GLOBAL.original_width = data.original_width;
+	    GLOBAL.original_height = data.original_height;
+	    
 	    if (data.instr!=="") {
 		$("#instructions").val(data.instr);
 	    }
-
+	    
 	    $("#identifiers_list").html(data.ids_list);
-
+	    
 	    var ids=data.ids;
-
+	    
 	    for (var i=0; i<ids.length; i++) {
 		(function(id) {
 		    $("#checkbox_"+id).button();
@@ -176,39 +201,37 @@ $("#svg_file").on("change",function() {
 					      }
 					  });})(ids[i])
 	    }
-        },
-        error: function(jqXHR, textStatus, errorThrown)
-        {
-            // Handle errors here
-            console.log('ERRORS: ' + textStatus);
-            // STOP LOADING SPINNER
-        }
+
+	    enableSVGButtons();
+	},
+	error: function(jqXHR, textStatus, errorThrown)
+	{
+	    // Handle errors here
+	    console.log('ERRORS: ' + textStatus);
+	    // STOP LOADING SPINNER
+	}
     });
-    }
-});
+}
 
-
-var original_x, original_y, original_width, original_height;
-
-/*
-    return {"svg": ET.tostring(svg),
-            "instr": instr_string,
-            "original_x": original_x,
-            "original_y": original_y,
-            "original_width": original_width,
-            "original_height": original_height,
-            "ids": "[{}]".format(",".join([ "\"{}\"".format(id) for (id,_) in ids]))}
-*/
-
+    /*
+      return {"svg": ET.tostring(svg),
+      "instr": instr_string,
+      "original_x": original_x,
+      "original_y": original_y,
+      "original_width": original_width,
+      "original_height": original_height,
+      "ids": "[{}]".format(",".join([ "\"{}\"".format(id) for (id,_) in ids]))}
+    */
+    
 function testInteractive () {
     var w = window.open("about:blank", "compiled_svg");
     var formData = new FormData();
     formData.append("svg",$("#svg").html());
     formData.append("instr",$("#instructions").val());
-    formData.append("ox",original_x);
-    formData.append("oy",original_y);
-    formData.append("ow",original_width);
-    formData.append("oh",original_height);
+    formData.append("ox",GLOBAL.original_x);
+    formData.append("oy",GLOBAL.original_y);
+    formData.append("ow",GLOBAL.original_width);
+    formData.append("oh",GLOBAL.original_height);
     formData.append("frame","true");
     var xhr = new XMLHttpRequest();
     xhr.open("POST","/compile_svg");
@@ -227,10 +250,10 @@ function exportInteractive () {
     var formData = new FormData();
     formData.append("svg",$("#svg").html());
     formData.append("instr",$("#instructions").val());
-    formData.append("ox","{{original_x}}");
-    formData.append("oy","{{original_y}}");
-    formData.append("ow","{{original_width}}");
-    formData.append("oh","{{original_height}}");
+    formData.append("ox",GLOBAL.original_x);
+    formData.append("oy",GLOBAL.original_y);
+    formData.append("ow",GLOBAL.original_width);
+    formData.append("oh",GLOBAL.original_height);
     formData.append("frame","false");
     var xhr = new XMLHttpRequest();
     xhr.open("POST","/compile_svg");

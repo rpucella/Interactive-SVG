@@ -39,7 +39,7 @@ def main (svgfile, insfile,frame,noload):
         with open(svgfile,"r") as f:
             instr_string = None
             for line in f:
-                if line.strip() == "<!--FANTOMAS":
+                if line.strip() == "<!--FM INTERACTIVE SVG SCRIPT":
                     verbose("Reading instructions from SVG file")
                     instr_string = ""
                 elif line.strip() == "-->":

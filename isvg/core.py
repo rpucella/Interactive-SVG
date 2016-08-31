@@ -55,7 +55,7 @@ def compile (svg, instructions,size=None,frame=False,noload=False):
     ##    print x
     ##    print x.attrib
     
-    prefix = "fantomas_{}".format(uid)
+    prefix = "FM_{}".format(uid)
     prefix_all_ids(svg,prefix)
     
     # should do some sort of validation here -- don't bother for now
@@ -65,13 +65,13 @@ def compile (svg, instructions,size=None,frame=False,noload=False):
 
     output = ""
 
-#    setup = """var e=function(i){var x=document.getElementById(i);x.fantomas_active=true;return x;};var s=function(i){i.setAttribute("display","display");i.setAttribute("opacity","1");i.fantomas_active=true;};var h=function(i){i.setAttribute("display","none");};var d=function(i){i.setAttribute("display","display");i.setAttribute("opacity","0.25");i.fantomas_active=false;}; var evHdl=function(el,ev,f) { if (el.addEventListener) { el.addEventListener(ev,f);} else if (el.attachEvent) { el.attachEvent(ev,f); } }; var hasC=function(el,c) { var s=$(el); if (s.attr("class")) { return s.attr("class").indexOf(c) >= 0; } else { return false; }}; var addC=function(el,c) { var s=$(el); if (!(hasC(el,c))) { var cs=s.attr("class"); if (cs) { s.attr("class",(cs+" "+c).trim()); } else { s.attr("class",c.trim());}}}; var remC=function(el,c) { var s=$(el); if (hasC(el,c)) { var cs=s.attr("class"); s.attr("class",cs.replace(c," ").trim()); }};"""
+#    setup = """var e=function(i){var x=document.getElementById(i);x.FM_active=true;return x;};var s=function(i){i.setAttribute("display","display");i.setAttribute("opacity","1");i.FM_active=true;};var h=function(i){i.setAttribute("display","none");};var d=function(i){i.setAttribute("display","display");i.setAttribute("opacity","0.25");i.FM_active=false;}; var evHdl=function(el,ev,f) { if (el.addEventListener) { el.addEventListener(ev,f);} else if (el.attachEvent) { el.attachEvent(ev,f); } }; var hasC=function(el,c) { var s=$(el); if (s.attr("class")) { return s.attr("class").indexOf(c) >= 0; } else { return false; }}; var addC=function(el,c) { var s=$(el); if (!(hasC(el,c))) { var cs=s.attr("class"); if (cs) { s.attr("class",(cs+" "+c).trim()); } else { s.attr("class",c.trim());}}}; var remC=function(el,c) { var s=$(el); if (hasC(el,c)) { var cs=s.attr("class"); s.attr("class",cs.replace(c," ").trim()); }};"""
 
-    setup = """var e=function(i){var x=document.getElementById(i);x.fantomas_active=true;return x;};var s=function(i){i.setAttribute("display","display");i.setAttribute("opacity","1");i.fantomas_active=true;};var h=function(i){i.setAttribute("display","none");};var d=function(i){i.setAttribute("display","display");i.setAttribute("opacity","0.25");i.fantomas_active=false;}; var evHdl=function(el,ev,f) { if (el.addEventListener) { el.addEventListener(ev,f);} else if (el.attachEvent) { el.attachEvent(ev,f); } }; var hasC=function(el,c) { if (el.getAttribute("class")) { return el.getAttribute("class").indexOf(c) >= 0; } else { return false; }}; var addC=function(el,c) { if (!(hasC(el,c))) { var cs=el.getAttribute("class"); if (cs) { el.setAttribute("class",(cs+" "+c).trim()); } else { el.setAttribute("class",c.trim());}}}; var remC=function(el,c) { if (hasC(el,c)) { var cs=el.getAttribute("class"); el.setAttribute("class",cs.replace(c," ").trim()); }};"""
+    setup = """var e=function(i){var x=document.getElementById(i);x.FM_active=true;return x;};var s=function(i){i.setAttribute("display","display");i.setAttribute("opacity","1");i.FM_active=true;};var h=function(i){i.setAttribute("display","none");};var d=function(i){i.setAttribute("display","display");i.setAttribute("opacity","0.25");i.FM_active=false;}; var evHdl=function(el,ev,f) { if (el.addEventListener) { el.addEventListener(ev,f);} else if (el.attachEvent) { el.attachEvent(ev,f); } }; var hasC=function(el,c) { if (el.getAttribute("class")) { return el.getAttribute("class").indexOf(c) >= 0; } else { return false; }}; var addC=function(el,c) { if (!(hasC(el,c))) { var cs=el.getAttribute("class"); if (cs) { el.setAttribute("class",(cs+" "+c).trim()); } else { el.setAttribute("class",c.trim());}}}; var remC=function(el,c) { if (hasC(el,c)) { var cs=el.getAttribute("class"); el.setAttribute("class",cs.replace(c," ").trim()); }};"""
 
     ###if (el.addEventListener) { el.addEventListener(ev,f);} else if (el.attachEvent) { el.attachEvent("on"+ev,f); } };"""
 
-    bind_ids = "".join([ "var fantomas_{cid} = e(\"{p}_{id}\");".format(p=prefix,cid=clean_id(id),id=id) for (id,_) in ids])
+    bind_ids = "".join([ "var FM_{cid} = e(\"{p}_{id}\");".format(p=prefix,cid=clean_id(id),id=id) for (id,_) in ids])
 
     # clean IDs because they will end up in identifiers
     ###ids = [ (clean_id(id),elt) for (id,elt) in ids]
@@ -102,18 +102,18 @@ def compile (svg, instructions,size=None,frame=False,noload=False):
             ###print "  checking event = {}".format(event)
             if event == "click":
                 actions = "".join([ compile_action(act,prefix) for act in instructions[id]["click"] ])
-                setup_click += "evHdl(fantomas_{id},\"click\",function() {{ if (this.fantomas_active) {{ {actions} }} }});".format(id=cid,actions=actions)
-                setup_click += "fantomas_{id}.style.cursor=\"pointer\";".format(id=cid);
+                setup_click += "evHdl(FM_{id},\"click\",function() {{ if (this.FM_active) {{ {actions} }} }});".format(id=cid,actions=actions)
+                setup_click += "FM_{id}.style.cursor=\"pointer\";".format(id=cid);
             elif event == "hover":
                 do_actions = "".join([ save_action(i,act)+compile_action(act,prefix) for (i,act) in enumerate(instructions[id]["hover"])] )
                 undo_actions = "".join(reversed([ restore_action(i,act) for (i,act) in enumerate(instructions[id]["hover"]) ]))
-                setup_hover += "evHdl(fantomas_{id},\"mouseenter\",function() {{ if (this.fantomas_active) {{ {do_actions} }} }}); evHdl(fantomas_{id},\"mouseleave\",function() {{ if (this.fantomas_active) {{ {undo_actions} }} }});".format(id=cid,do_actions=do_actions,undo_actions=undo_actions)
+                setup_hover += "evHdl(FM_{id},\"mouseenter\",function() {{ if (this.FM_active) {{ {do_actions} }} }}); evHdl(FM_{id},\"mouseleave\",function() {{ if (this.FM_active) {{ {undo_actions} }} }});".format(id=cid,do_actions=do_actions,undo_actions=undo_actions)
             elif event == "hover-start":
                 do_actions = "".join([ compile_action(act,prefix) for act in instructions[id]["hover-start"] ])
-                setup_hover_start += "evHdl(fantomas_{id},\"mouseenter\",function() {{ if (this.fantomas_active) {{ {do_actions} }} }});".format(id=cid,do_actions=do_actions)
+                setup_hover_start += "evHdl(FM_{id},\"mouseenter\",function() {{ if (this.FM_active) {{ {do_actions} }} }});".format(id=cid,do_actions=do_actions)
             elif event == "hover-end":
                 do_actions = "".join([ compile_action(act,prefix) for act in instructions[id]["hover-end"] ])
-                setup_hover_end += "evHdl(fantomas_{id},\"mouseleave\",function() {{ if (this.fantomas_active) {{ {do_actions} }} }});".format(id=cid,do_actions=do_actions)
+                setup_hover_end += "evHdl(FM_{id},\"mouseleave\",function() {{ if (this.FM_active) {{ {do_actions} }} }});".format(id=cid,do_actions=do_actions)
             elif event == "select":
                 change_code = ",".join([ """ "{value}" : function() {{ {actions} }} """.format(value=v,
                                                                                                actions="".join([ compile_action(act,prefix) for act in instructions[id]["select"][v]])) for v in instructions[id]["select"].keys()])
@@ -203,14 +203,14 @@ def compile_action (act,prefix=None):
         return mk_dim_ids(act["elements"])
     elif act["action"] == "style":
         c = act["elements"][0]
-###        return "".join(["""fantomas_{}.classList.add("{}_{}");""".format(clean_id(id),prefix,clean_id(c)) for id in act["elements"][1:]])
-        return "".join(["""addC(fantomas_{},"{}_{}");""".format(clean_id(id),prefix,clean_id(c)) for id in act["elements"][1:]])
-###        return "".join(["""$(fantomas_{}).attr("class",($(fantomas_{}).attr("class")+" {}_{}").trim());""".format(clean_id(id),clean_id(id),prefix,clean_id(c)) for id in act["elements"][1:]])
+###        return "".join(["""FM_{}.classList.add("{}_{}");""".format(clean_id(id),prefix,clean_id(c)) for id in act["elements"][1:]])
+        return "".join(["""addC(FM_{},"{}_{}");""".format(clean_id(id),prefix,clean_id(c)) for id in act["elements"][1:]])
+###        return "".join(["""$(FM_{}).attr("class",($(FM_{}).attr("class")+" {}_{}").trim());""".format(clean_id(id),clean_id(id),prefix,clean_id(c)) for id in act["elements"][1:]])
     elif act["action"] == "unstyle":
         c = act["elements"][0]
-###        return "".join(["""fantomas_{}.classList.remove("{}_{}");""".format(clean_id(id),prefix,clean_id(c)) for id in act["elements"][1:]])
-        return "".join(["""remC(fantomas_{},"{}_{}");""".format(clean_id(id),prefix,clean_id(c)) for id in act["elements"][1:]])
-###        return "".join(["""if ($(fantomas_{}).attr("class")) {{ $(fantomas_{}).attr("class",$(fantomas_{}).attr("class").replace(new RegExp("(\\s|^){}_{}(\\s|$)","g"),"").trim());}}; """.format(clean_id(id),clean_id(id),clean_id(id),prefix,clean_id(c)) for id in act["elements"][1:]])
+###        return "".join(["""FM_{}.classList.remove("{}_{}");""".format(clean_id(id),prefix,clean_id(c)) for id in act["elements"][1:]])
+        return "".join(["""remC(FM_{},"{}_{}");""".format(clean_id(id),prefix,clean_id(c)) for id in act["elements"][1:]])
+###        return "".join(["""if ($(FM_{}).attr("class")) {{ $(FM_{}).attr("class",$(FM_{}).attr("class").replace(new RegExp("(\\s|^){}_{}(\\s|$)","g"),"").trim());}}; """.format(clean_id(id),clean_id(id),clean_id(id),prefix,clean_id(c)) for id in act["elements"][1:]])
         
     else:
         return ""
@@ -218,22 +218,22 @@ def compile_action (act,prefix=None):
 
 def save_action (i,act):
     if act["action"] in ["show","hide"]:
-        return "".join([ """fantomas_{id}.saved_fantomas_display_{i}=fantomas_{id}.getAttribute("display");""".format(id=clean_id(id),i=i) for id in act["elements"] ])
+        return "".join([ """FM_{id}.saved_FM_display_{i}=FM_{id}.getAttribute("display");""".format(id=clean_id(id),i=i) for id in act["elements"] ])
     elif act["action"] in ["dim"]: 
-        return "".join([ """fantomas_{id}.saved_fantomas_display_{i}=fantomas_{id}.getAttribute("display"); fantomas_{id}.saved_fantomas_opacity_{i}=fantomas_{id}.getAttribute("opacity"); fantomas_{id}.saved_fantomas_active_{i}=fantomas_{id}.fantomas_active;""".format(id=clean_id(id),i=i) for id in act["elements"] ])
+        return "".join([ """FM_{id}.saved_FM_display_{i}=FM_{id}.getAttribute("display"); FM_{id}.saved_FM_opacity_{i}=FM_{id}.getAttribute("opacity"); FM_{id}.saved_FM_active_{i}=FM_{id}.FM_active;""".format(id=clean_id(id),i=i) for id in act["elements"] ])
     elif act["action"] in ["style","unstyle"]:
-        return "".join([ """fantomas_{id}.saved_fantomas_class_{i}=fantomas_{id}.getAttribute("class");""".format(id=clean_id(id),i=i) for id in act["elements"][1:]])
+        return "".join([ """FM_{id}.saved_FM_class_{i}=FM_{id}.getAttribute("class");""".format(id=clean_id(id),i=i) for id in act["elements"][1:]])
     else:
         verbose("saving for action {} not implemented".format(act["action"]))
         return ""
 
 def restore_action (i,act):
     if act["action"] in ["show","hide"]:
-        return "".join([ """fantomas_{id}.setAttribute("display",fantomas_{id}.saved_fantomas_display_{i});""".format(id=clean_id(id),i=i) for id in act["elements"] ])
+        return "".join([ """FM_{id}.setAttribute("display",FM_{id}.saved_FM_display_{i});""".format(id=clean_id(id),i=i) for id in act["elements"] ])
     elif act["action"] in ["dim"]: 
-        return "".join([ """fantomas_{id}.setAttribute("display",fantomas_{id}.saved_fantomas_display_{i}); fantomas_{id}.setAttribute("opacity",fantomas_{id}.saved_fantomas_opacity_{i}); fantomas_{id}.fantomas_active=fantomas_{id}.saved_fantomas_active_{i};""".format(id=clean_id(id),i=i) for id in act["elements"] ])
+        return "".join([ """FM_{id}.setAttribute("display",FM_{id}.saved_FM_display_{i}); FM_{id}.setAttribute("opacity",FM_{id}.saved_FM_opacity_{i}); FM_{id}.FM_active=FM_{id}.saved_FM_active_{i};""".format(id=clean_id(id),i=i) for id in act["elements"] ])
     elif act["action"] in ["style","unstyle"]:
-        return "".join([ """fantomas_{id}.setAttribute("class",fantomas_{id}.saved_fantomas_class_{i});""".format(id=clean_id(id),i=i) for id in act["elements"][1:]])
+        return "".join([ """FM_{id}.setAttribute("class",FM_{id}.saved_FM_class_{i});""".format(id=clean_id(id),i=i) for id in act["elements"][1:]])
     else:
         verbose("saving for action {} not implemented".format(act["action"]))
         return ""
@@ -265,13 +265,13 @@ def get_hover_hide (instructions,id):
 
 
 def mk_show_ids (ids):
-    return "".join([ "s(fantomas_{id});".format(id=clean_id(id)) for id in ids])
+    return "".join([ "s(FM_{id});".format(id=clean_id(id)) for id in ids])
 
 def mk_hide_ids (ids):
-    return "".join([ "h(fantomas_{id});".format(id=clean_id(id)) for id in ids])
+    return "".join([ "h(FM_{id});".format(id=clean_id(id)) for id in ids])
 
 def mk_dim_ids (ids):
-    return "".join([ "d(fantomas_{id});".format(id=clean_id(id)) for id in ids])
+    return "".join([ "d(FM_{id});".format(id=clean_id(id)) for id in ids])
     
 
 
