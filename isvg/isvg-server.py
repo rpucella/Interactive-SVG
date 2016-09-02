@@ -20,7 +20,7 @@ import sys
 
 import xml.etree.ElementTree as ET
 
-import core
+import compile
 
 
 
@@ -63,9 +63,9 @@ def POST_upload_svg ():
     tree = ET.parse(upload.file)
     svg = tree.getroot()
     
-    if svg.tag != "svg" and svg.tag != "{{{}}}svg".format(core.xmlns_svg):
+    if svg.tag != "svg" and svg.tag != "{{{}}}svg".format(compile.xmlns_svg):
         raise Exception("root element not <svg>")
-    ids = core.available_ids(svg)
+    ids = compile.available_ids(svg)
 
     result = ""
     if ids:
@@ -75,8 +75,8 @@ def POST_upload_svg ():
                       """.format(checked="" if elt.get("display")=="none" else "checked",
                                  id=id)
 
-    ET.register_namespace('',core.xmlns_svg)
-    ET.register_namespace('xlink',core.xmlns_xlink)
+    ET.register_namespace('',compile.xmlns_svg)
+    ET.register_namespace('xlink',compile.xmlns_xlink)
 
     original_x = svg.attrib["x"] if "x" in svg.attrib else "0"
     original_y = svg.attrib["y"] if "y" in svg.attrib else "0"
@@ -139,9 +139,9 @@ def POST_edit_svg ():
         print "Unknown source!"
         abort(500,"Unknown source {}".format(source))
         
-    if svg.tag != "svg" and svg.tag != "{{{}}}svg".format(core.xmlns_svg):
+    if svg.tag != "svg" and svg.tag != "{{{}}}svg".format(compile.xmlns_svg):
         raise Exception("root element not <svg>")
-    ids = core.available_ids(svg)
+    ids = compile.available_ids(svg)
 
     result = ""
     if ids:
@@ -151,8 +151,8 @@ def POST_edit_svg ():
                       """.format(checked="" if elt.get("display")=="none" else "checked",
                                  id=id)
 
-    ET.register_namespace('',core.xmlns_svg)
-    ET.register_namespace('xlink',core.xmlns_xlink)
+    ET.register_namespace('',compile.xmlns_svg)
+    ET.register_namespace('xlink',compile.xmlns_xlink)
 
     original_x = svg.attrib["x"] if "x" in svg.attrib else "0"
     original_y = svg.attrib["y"] if "y" in svg.attrib else "0"
@@ -215,7 +215,7 @@ def POST_compile_svg ():
     frame = request.forms.get("frame")
 
     svg_tree = ET.fromstring(svg)
-    instructions = core.parse_instructions(instr)
+    instructions = compile.parse_instructions(instr)
     frame = True if frame == "true" else False
 
     size = {"x":ox,
@@ -223,7 +223,7 @@ def POST_compile_svg ():
              "width":ow,
              "height":oh}
 
-    result = core.compile (svg_tree,instructions,size=size,frame=frame,noload=True)
+    result = compile.compile (svg_tree,instructions,size=size,frame=frame,noload=True)
 
     return result
 

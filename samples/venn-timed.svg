@@ -19,6 +19,14 @@
 
 <!--FM INTERACTIVE SVG SCRIPT
 
+__init__ 
+  -> hide red blue green
+  -> delay 1000 show red
+  -> delay 2000 show green
+  -> delay 3000 show blue;
+
+define style highlight " fill-opacity: 0.8; ";
+
 click red -> show back -> hide text_red -> remove highlight red -> dim red;
 
 hover red -> show text_red -> apply highlight red;
@@ -32,7 +40,5 @@ click green -> show back -> hide text_green -> remove highlight green -> dim gre
 hover green -> show text_green -> apply highlight green;
 
 click back -> show red blue green -> hide back;
-
-define style highlight " fill-opacity: 0.8; ";
 
 -->

@@ -1,5 +1,5 @@
 
-from core import *
+from compile import *
 
 
 
