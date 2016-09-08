@@ -499,6 +499,10 @@ def parse_action (s):
     if len(p) > 0 and p[0] in ["show","hide","dim","apply","remove"]:
         return {"action":p[0],
                 "elements":p[1:]}
+    if len(p) > 2 and p[0] == "fadein":
+        return {"action":p[0],
+                "time":int(p[1]),
+                "elements":p[2:]}
     if len(p) > 3 and p[0] == "delay": 
         return {"action":p[0],
                 "time":int(p[1]),

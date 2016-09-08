@@ -77,13 +77,11 @@ p {
       <p style="margin-top: 0;"><b>INTERACTION SCRIPT:</b> <!-- <button>Load</button></p>-->
       <textarea id="instructions" style="width: 100%; padding: 5px; border: 1px solid #dddddd; height: 90%;" >{{initial_instr}}</textarea>
     </div>
-
     
     <!-- Identifiers list -->
     <div style="margin: 10px; position: absolute; left: 70%; top: 0; right: 10px; bottom: 60px; overflow-y: auto;">
       <p style="margin-top: 0;"><b>ELEMENT IDENTIFIERS:</b></p>
       <ul id="identifiers_list" style="list-style: none; margin-left: 0; padding-left: 0;">
-	{{!code_ids}}
       </ul>
     </div>
 
@@ -97,8 +95,6 @@ p {
     
   </div>
 
-
-  
   <script>
 
 
@@ -111,37 +107,33 @@ var GLOBAL = {
     original_height:0
 };
 
+var original_svg_data = {{!svg_data}}
+
 function enableSVGButtons () { 
     $("#button-test").button("enable");
     $("#button-export").button("enable");
 }
 
 
-function disableSVGButtons () { 
-    $("#button-test").button("disable");
-    $("#button-export").button("disable");
-}
-
 function run () { 
     
     $("#svg svg").attr("x",0).attr("y",0).attr("width","100%").attr("height","100%");
     
-    $("#button-test").button();
-    $("#button-export").button();
-    $("#button-help").button();
+    $("#button-test").button().button("disable");
+    $("#button-export").button().button("disable");
+    $("#button-help").button().button("disable");
     
     $("#button-test").click(testInteractive);
     $("#button-export").click(exportInteractive);
 
     // $("#button-load-svg").button();
-    
-    if ("{{!code_svg}}"!=="") {
-	enableSVGButtons();
-    } else {
-	disableSVGButtons();
+
+    /* For some reason, $("#svg").length doesn't work. Work around: */
+//    if ("{{!code_svg}}"!=="") {
+
+    if (document.getElementById("svg").children.length > 0) {
+	setupSVG(original_svg_data);
     }
-	
-    $("#button-help").button("disable");
     
     $("#svg_file").on("change",uploadSVG);
 }
@@ -169,40 +161,19 @@ function uploadSVG () {
 	type: "POST",
 	data: data,
 	cache: false,
-	contentType: false,  // "multipart/form-data",  -- do not specify, otherwise JQ doesn't send boundary string
+	contentType: false, // "multipart/form-data",  -- do not specify, otherwise JQ doesn't send boundary string
 	dataType: "json",
 	processData: false, // Don't process the files
 	success: function(data, textStatus, jqXHR)
 	{
 	    console.log("RESULT = ",data);
 	    $("#svg").html(data.svg);
-	    GLOBAL.original_x = data.original_x;
-	    GLOBAL.original_y = data.original_y;
-	    GLOBAL.original_width = data.original_width;
-	    GLOBAL.original_height = data.original_height;
-	    
+
 	    if (data.instr!=="") {
 		$("#instructions").val(data.instr);
 	    }
-	    
-	    $("#identifiers_list").html(data.ids_list);
-	    
-	    var ids=data.ids;
-	    
-	    for (var i=0; i<ids.length; i++) {
-		(function(id) {
-		    $("#checkbox_"+id).button();
-		    $("#checkbox_"+id).on("change",
-					  function() { 
-					      if (this.checked) { 
-   						  document.getElementById(id).setAttribute("display","inline");
-					      } else {
-   						  document.getElementById(id).setAttribute("display","none");
-					      }
-					  });})(ids[i])
-	    }
 
-	    enableSVGButtons();
+	    setupSVG(data);
 	},
 	error: function(jqXHR, textStatus, errorThrown)
 	{
@@ -213,15 +184,35 @@ function uploadSVG () {
     });
 }
 
-    /*
-      return {"svg": ET.tostring(svg),
-      "instr": instr_string,
-      "original_x": original_x,
-      "original_y": original_y,
-      "original_width": original_width,
-      "original_height": original_height,
-      "ids": "[{}]".format(",".join([ "\"{}\"".format(id) for (id,_) in ids]))}
-    */
+
+function setupSVG (data) {
+
+    GLOBAL.original_x = data.original_x;
+    GLOBAL.original_y = data.original_y;
+    GLOBAL.original_width = data.original_width;
+    GLOBAL.original_height = data.original_height;
+    
+    $("#identifiers_list").html(data.ids_list);
+    
+    var ids=data.ids;
+    
+    for (var i=0; i<ids.length; i++) {
+	(function(id) {
+	    $("#checkbox_"+id).button();
+	    $("#checkbox_"+id).on("change",
+				  function() { 
+				      if (this.checked) { 
+   					  document.getElementById(id).setAttribute("display","inline");
+				      } else {
+   					  document.getElementById(id).setAttribute("display","none");
+				      }
+				  });})(ids[i])
+    }
+
+    enableSVGButtons();
+}
+
+
     
 function testInteractive () {
     var w = window.open("about:blank", "compiled_svg");

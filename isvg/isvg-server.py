@@ -22,19 +22,17 @@ import xml.etree.ElementTree as ET
 
 import compile
 
+import json
+
 
 
 @get("/")
+@get("/upload_svg")
 def GET_root ():
+
     redirect("/edit_svg")
 
     
-@get("/upload_svg")
-def GET_upload_svg ():
-
-    redirect("/edit_svg")
-
-
 @get("/create_svg")
 def GET_chart ():
 
@@ -44,25 +42,54 @@ def GET_chart ():
 @get("/edit_svg")
 def GET_edit_svg ():
 
-    # So why is this a 
-
     return template("edit_svg",
                     page_title = "Interactive SVG Editor",
                     code_svg = "",
-                    code_ids = "",
                     initial_instr = "",
-                    ids = [])
+                    svg_data = "{}")
 
 
 @post("/upload_svg")
 def POST_upload_svg ():
+    # called by SVG editor when submitting a SVG for upload
 
     print "file = ", request.files.get("file")
 
     upload = request.files.get("file")
     tree = ET.parse(upload.file)
     svg = tree.getroot()
+
+    result = process_svg (svg)
+
+    # read instructions from input if it exists
+    instr_string = None
     
+    upload.file.seek(0)
+    for line in upload.file:
+        if has_interactive_script(line):
+            instr_string = ""
+        elif line.strip() == "-->":
+            break
+        elif instr_string is not None: 
+            instr_string += line
+            
+    if instr_string is None:
+        instr_string = ""
+
+    result["instr"] = instr_string
+        
+    return result
+
+
+
+def has_interactive_script (line):
+
+    return (line.strip() == "<!--FM INTERACTIVE SVG SCRIPT")
+
+
+
+def process_svg (svg):
+
     if svg.tag != "svg" and svg.tag != "{{{}}}svg".format(compile.xmlns_svg):
         raise Exception("root element not <svg>")
     ids = compile.available_ids(svg)
@@ -89,22 +116,7 @@ def POST_upload_svg ():
     svg.attrib["height"] = "100%";
     svg.attrib["xml:space"] = "preserve";
 
-    instr_string = None
-
-    upload.file.seek(0)
-    for line in upload.file:
-        if line.strip() == "<!--FM INTERACTIVE SVG SCRIPT":
-            instr_string = ""
-        elif line.strip() == "-->":
-            break
-        elif instr_string is not None: 
-            instr_string += line
-            
-    if instr_string is None:
-        instr_string = ""
-        
     return {"svg": ET.tostring(svg),
-            "instr": instr_string,
             "ids_list": result,
             "original_x": original_x,
             "original_y": original_y,
@@ -112,14 +124,10 @@ def POST_upload_svg ():
             "original_height": original_height,
             "ids": [ id for (id,_) in ids]}
 
-
-
-
-# 
-# NO LONGER NEEDED?
-#    
+    
 @post("/edit_svg")
 def POST_edit_svg ():
+    # Called by external routines that _create_ svgs for editing
 
     source = request.forms.get("source")
 
@@ -138,39 +146,20 @@ def POST_edit_svg ():
     else:
         print "Unknown source!"
         abort(500,"Unknown source {}".format(source))
+
+
+    result = process_svg(svg)
+
+    ##print "JSON:",
+    ##print json.dumps(result)
         
-    if svg.tag != "svg" and svg.tag != "{{{}}}svg".format(compile.xmlns_svg):
-        raise Exception("root element not <svg>")
-    ids = compile.available_ids(svg)
-
-    result = ""
-    if ids:
-        w = max([len(id) for (id,elt) in ids])
-        for (id,elt) in ids:
-            result += """<li><input id="checkbox_{id}" type="checkbox" {checked}></input><label for="checkbox_{id}" style="margin-left: 10px;">{id}</label></li>\n
-                      """.format(checked="" if elt.get("display")=="none" else "checked",
-                                 id=id)
-
-    ET.register_namespace('',compile.xmlns_svg)
-    ET.register_namespace('xlink',compile.xmlns_xlink)
-
-    original_x = svg.attrib["x"] if "x" in svg.attrib else "0"
-    original_y = svg.attrib["y"] if "y" in svg.attrib else "0"
-    original_width = svg.attrib["width"]
-    original_height = svg.attrib["height"]
-
-    svg.attrib["x"] = "0";
-    svg.attrib["y"] = "0";
-    svg.attrib["width"] = "500";
-    svg.attrib["height"] = "300";
-    svg.attrib["xml:space"] = "preserve";
-
+    # deal with instructions if they are present
     instr_string = None
 
     if source == "file":
              upload.file.seek(0)
              for line in upload.file:
-                if line.strip() == "<!--FANTOMAS":
+                if has_interactive_script(line):
                     instr_string = ""
                 elif line.strip() == "-->":
                     break
@@ -179,7 +168,7 @@ def POST_edit_svg ():
 
     elif source == "chart":
         for line in svg_string.split("\n"):
-                if line.strip() == "<!--FANTOMAS":
+                if has_interactive_script(line):
                     instr_string = ""
                 elif line.strip() == "-->":
                     break
@@ -188,23 +177,25 @@ def POST_edit_svg ():
         
     if instr_string is None:
         instr_string = ""
-        
+
+    svg_data = {"ids_list": result["ids_list"],
+                "original_x": result["original_x"],
+                "original_y": result["original_y"],
+                "original_width": result["original_width"],
+                "original_height": result["original_height"],
+                "ids": result["ids"]}
 
     return template("edit_svg",
                     page_title = "Interactive SVG Editor",
-                    code_svg = ET.tostring(svg),
-                    code_ids = result,
+                    code_svg = result["svg"],
                     initial_instr = instr_string,
-                    original_x = original_x,
-                    original_y = original_y,
-                    original_width = original_width,
-                    original_height = original_height,
-                    ids = "[{}]".format(",".join([ "\"{}\"".format(id) for (id,_) in ids])))
+                    svg_data = json.dumps(svg_data))
 
 
 
 @post("/compile_svg")
 def POST_compile_svg ():
+    # called by SVG editor when asked to compile an SVG + a script
 
     svg = request.forms.get("svg")
     instr = request.forms.get("instr")
@@ -242,5 +233,4 @@ if __name__ == "__main__":
         print "Usage: server <port>"
 else:
     print "(loaded)"
-
 
