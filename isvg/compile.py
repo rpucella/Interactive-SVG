@@ -519,3 +519,34 @@ def load_instructions (instrfile):
         with open(instrfile,"r") as f:
             instrs = parse_instructions(f.read())
     return instrs
+
+def get_fonts (svg):
+    # pull out all fonts from elements
+    ns = {"svg":"http://www.w3.org/2000/svg",
+          "xlink":"http://www.w3.org/1999/xlink"}
+    # get all elements with a fontFamily attribute
+    fontedElts = [elt for elt in svg.findall(".//*[@font-family]")]
+    fonts = set()
+    for elt in fontedElts:
+        fonts.add(elt.get("font-family"))
+    return list(fonts)
+
+
+def fix_fonts (svg,target):
+    # turn all fonts to Arial
+    # optimized on how AI handles fonts
+    # if you recognize a font as being Bold, replace by fontWeight="bold" if appropriate
+    fontedElts = [elt for elt in svg.findall(".//*[@font-family]")]
+    for elt in fontedElts:
+        if elt.get("fontFamily") not in ["arial"]:  # check
+            if "-bd" not in elt.get("font-family").lower():
+                elt.set("font-family",target)
+            else:
+                elt.set("font-family",target)
+                elt.set("font-weight","bold")
+    # supposedly, the above does the modification in-place in the svg
+    # (each element remembers where it came from? An element is just a reference to 
+    #  an svg location?)
+    return svg
+
+    
