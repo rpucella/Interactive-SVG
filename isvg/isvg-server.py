@@ -59,7 +59,7 @@ def POST_upload_svg ():
     tree = ET.parse(upload.file)
     svg = tree.getroot()
 
-    result = process_svg (svg)
+    result = process_svg(svg)
 
     # read instructions from input if it exists
     instr_string = None
@@ -77,6 +77,45 @@ def POST_upload_svg ():
         instr_string = ""
 
     result["instr"] = instr_string
+
+    result["fonts"] = compile.get_fonts(svg)
+        
+    return result
+
+
+
+@post("/fix_fonts_svg")
+def POST_upload_svg ():
+    # called by SVG editor when submitting a SVG for upload
+
+    print "file = ", request.files.get("file")
+
+    upload = request.files.get("file")
+    tree = ET.parse(upload.file)
+    svg = tree.getroot()
+
+    svg = compile.fix_fonts(svg,"sans-serif")
+
+    result = process_svg(svg)
+
+    # read instructions from input if it exists
+    instr_string = None
+    
+    upload.file.seek(0)
+    for line in upload.file:
+        if has_interactive_script(line):
+            instr_string = ""
+        elif line.strip() == "-->":
+            break
+        elif instr_string is not None: 
+            instr_string += line
+            
+    if instr_string is None:
+        instr_string = ""
+
+    result["instr"] = instr_string
+
+    result["fonts"] = compile.get_fonts(svg)
         
     return result
 

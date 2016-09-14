@@ -31,7 +31,7 @@
 }
 
 body {
-  font-family: "Open Sans", sans;
+  font-family: "Open Sans", sans-serif;
 }
 
 p {
@@ -90,6 +90,7 @@ p {
       <button id="button-help" class="interaction-btn" style="margin: 10px; width: 100%; height: 30px; max-width: 200px; float: right;">Help</button>
       <button id="button-export" class="interaction-btn" style="margin: 10px; width: 100%; height: 30px; max-width: 200px; float: right;">Export HTML</button>
       <button id="button-test" class="interaction-btn" style="margin: 10px; width: 100%; height: 30px; max-width: 200px; float: right;">Test</button>
+      <button id="button-fonts" class="interaction-btn" style="margin: 10px; width: 100%; height: 30px; max-width: 200px; float: right;">Sans-Serif Fonts</button>
       <a id="export-download" style="display:none;"></a>
     </div>
     
@@ -109,9 +110,17 @@ var GLOBAL = {
 
 var original_svg_data = {{!svg_data}}
 
+
 function enableSVGButtons () { 
     $("#button-test").button("enable");
     $("#button-export").button("enable");
+    
+    if (GLOBAL.fonts.length !== 1 || 
+	GLOBAL.fonts[0] !== "sans-serif") {
+	$("#button-fonts").button("enable");
+    } else {
+	$("#button-fonts").button("disable");
+    }
 }
 
 
@@ -120,11 +129,14 @@ function run () {
     $("#svg svg").attr("x",0).attr("y",0).attr("width","100%").attr("height","100%");
     
     $("#button-test").button().button("disable");
+    $("#button-fonts").button().button("disable");
     $("#button-export").button().button("disable");
     $("#button-help").button().button("disable");
     
     $("#button-test").click(testInteractive);
     $("#button-export").click(exportInteractive);
+
+    $("#button-fonts").click(changeFontsToSansSerif);
 
     // $("#button-load-svg").button();
 
@@ -137,6 +149,48 @@ function run () {
     
     $("#svg_file").on("change",uploadSVG);
 }
+
+function changeFontsToSansSerif () {
+    
+    // Create a formdata object and add the files
+    var data = new FormData();
+
+    var svg_code = $("#svg").html();
+    var blob = new Blob([svg_code], { type: "text/xml"});
+
+    data.append("file",blob);
+    
+    //console.log(files[0]);
+    //console.log(data);
+    
+    $.ajax({
+	url: "/fix_fonts_svg",
+	type: "POST",
+	data: data,
+	cache: false,
+	contentType: false, // "multipart/form-data",  -- do not specify, otherwise JQ doesn't send boundary string
+	dataType: "json",
+	processData: false, // Don't process the files
+	success: function(data, textStatus, jqXHR)
+	{
+	    console.log("RESULT = ",data);
+	    $("#svg").html(data.svg);
+
+	    if (data.instr!=="") {
+		$("#instructions").val(data.instr);
+	    }
+
+	    setupSVG(data);
+	},
+	error: function(jqXHR, textStatus, errorThrown)
+	{
+	    // Handle errors here
+	    console.log('ERRORS: ' + textStatus);
+	    // STOP LOADING SPINNER
+	}
+    });
+}
+
 
 function uploadSVG () {
     var files = $("#svg_file").prop("files");
@@ -191,6 +245,7 @@ function setupSVG (data) {
     GLOBAL.original_y = data.original_y;
     GLOBAL.original_width = data.original_width;
     GLOBAL.original_height = data.original_height;
+    GLOBAL.fonts = data.fonts;
     
     $("#identifiers_list").html(data.ids_list);
     

@@ -533,13 +533,13 @@ def get_fonts (svg):
 
 
 def fix_fonts (svg,target):
-    # turn all fonts to Arial
+    # turn all fonts to sans-serif
     # optimized on how AI handles fonts
     # if you recognize a font as being Bold, replace by fontWeight="bold" if appropriate
     fontedElts = [elt for elt in svg.findall(".//*[@font-family]")]
     for elt in fontedElts:
-        if elt.get("fontFamily") not in ["arial"]:  # check
-            if "-bd" not in elt.get("font-family").lower():
+        if elt.get("font-family") not in target:  # check
+            if "-Bd" not in elt.get("font-family").lower():
                 elt.set("font-family",target)
             else:
                 elt.set("font-family",target)
