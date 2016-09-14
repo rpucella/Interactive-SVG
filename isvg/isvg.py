@@ -21,6 +21,16 @@ def main (svgfile, insfile,frame,noload):
     tree = ET.parse(svgfile)
     svg = tree.getroot()
 
+    original_x = svg.attrib["x"] if "x" in svg.attrib else "0"
+    original_y = svg.attrib["y"] if "y" in svg.attrib else "0"
+    original_width = svg.attrib["width"]
+    original_height = svg.attrib["height"]
+
+    size = {"x":original_x,
+             "y":original_y,
+             "width":original_width,
+             "height":original_height}
+
     ids = available_ids(svg)
     show_available_ids(ids)
     
@@ -30,7 +40,7 @@ def main (svgfile, insfile,frame,noload):
         verbose("Reading interaction instructions [{}]".format(insfile))
         instr = load_instructions(insfile)
 
-        output = compile(svg,instr,frame=frame,noload=noload)
+        output = compile(svg,instr,size=size,frame=frame,noload=noload)
         print output
 
     else:
@@ -39,12 +49,12 @@ def main (svgfile, insfile,frame,noload):
         with open(svgfile,"r") as f:
             instr_string = None
             for line in f:
-                if line.strip() == "<!--FANTOMAS":
+                if line.strip() == "<!--FM INTERACTIVE SVG SCRIPT":
                     verbose("Reading instructions from SVG file")
                     instr_string = ""
                 elif line.strip() == "-->":
                     instr = parse_instructions(instr_string)
-                    output = compile(svg,instr,frame=frame,noload=noload)
+                    output = compile(svg,instr,size=size,frame=frame,noload=noload)
                     print output
                     return
                 elif instr_string is not None: 

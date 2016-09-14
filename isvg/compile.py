@@ -25,7 +25,7 @@ def verbose (msg):
 xmlns_svg = "http://www.w3.org/2000/svg"
 xmlns_xlink = "http://www.w3.org/1999/xlink"
 
-def compile (svg, instructions,size=None,frame=False,noload=False):
+def compile (svg, instructions,size=None,frame=False,noload=True):
     ns = {"svg":"http://www.w3.org/2000/svg",
           "xlink":"http://www.w3.org/1999/xlink"}
     if svg.tag != "svg" and svg.tag != "{{{}}}svg".format(xmlns_svg):
@@ -156,8 +156,12 @@ var remC=function(el,c) {
 
     init = ""
     if "__init" in instructions:
-        print "__init = ",instructions["__init"]
+        ##print "__init = ",instructions["__init"]
         init = "".join([ compile_action(act,prefix) for act in instructions["__init"]])
+
+    show = ""
+    if "__show" in instructions:
+        pass
                 
     for id in [id for (id,_) in ids if id in instructions and not id.startswith("__")]:
         ###print "checking id = {}".format(id)
@@ -188,7 +192,8 @@ var remC=function(el,c) {
     if noload:
         script_base = """(function() {{ {setup}{creates}{bind_ids}{setup_click}{setup_hover}{setup_hover_start}{setup_hover_end}{setup_select}{init} }})();"""
     else:
-        script_base = """evHdl(window,\"load\",function() {{ \n {setup}{creates}{bind_ids}{setup_click}{setup_hover}{setup_hover_start}{setup_hover_end}{setup_select} }});\n"""
+        # may fail on IE -- use noload
+        script_base = """window.addEventListener(\"load\",function() {{ \n {setup}{creates}{bind_ids}{setup_click}{setup_hover}{setup_hover_start}{setup_hover_end}{setup_select} }});\n"""
     script = script_base.format(bind_ids = bind_ids,
                                 setup=setup,
                                 creates=creates,
@@ -200,15 +205,37 @@ var remC=function(el,c) {
                                 init=init)
     if frame:
         output += "<html><body>"
-    output +=  """<div id="{}___main_div" style="position: relative; left: 0px; top:0px;">""".format(prefix)
+
+    def clean_dim (dim):
+        return int(dim.replace("px",""))
+
+    if size:
+        padding = int(1+100*float(clean_dim(size["height"]))/float(clean_dim(size["width"])))
+    else:
+        padding = 0
+    ## Fix to allow resizing on most browsers (mostly need to fix IE11+)
+    ##output +=  """<div id="{}___main_div" style="position: relative; left: 0px; top:0px;">""".format(prefix)
+    output +=  """<div id="{}___main_div" style="position: relative; left: 0px; top:0px; height:0; width: 100%; padding-top: {}%;">""".format(prefix,padding)
+
     # suppress namespace for svg
     ET.register_namespace('',xmlns_svg)
 
+    def delete_svg_attrib (attr):
+        try:
+            svg.attrib.pop(attr)
+        except KeyError:
+            pass
+        
     if size:
         svg.attrib["x"] = size["x"]
         svg.attrib["y"] = size["y"]
-        svg.attrib["width"] = size["width"]
-        svg.attrib["height"] = size["height"]
+        ##svg.attrib["width"] = size["width"]
+        ##svg.attrib["height"] = size["height"]
+        delete_svg_attrib("height")
+        delete_svg_attrib("width")
+        svg.attrib["viewBox"] = "0 0 {} {}".format(clean_dim(size["width"]),clean_dim(size["height"]))
+        svg.attrib["style"] = "position: absolute; top:0; left:0;" 
+        
 
     if styling:
         output += """<style>{}</style>""".format(styling);
@@ -349,6 +376,9 @@ def parse_instructions (instrs_string):
     instrs = {}
     instructions = []
     tokens = []
+
+    if not instrs_string:
+        return {}
 
     current = ""
     for line in instrs_string.split("\n"):
