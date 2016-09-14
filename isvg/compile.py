@@ -161,7 +161,29 @@ var remC=function(el,c) {
 
     show = ""
     if "__show" in instructions:
-        pass
+        actions = "".join([ compile_action(act,prefix) for act in instructions["__show"]])
+        show = """var didScroll = true; 
+                   var showStarted = false;
+                   var intervalID; 
+                   var main_el = e("{prefix}___main_div");
+                   var checkAnimation = function() {{ 
+                     if (showStarted) {{
+                        return; 
+                     }};
+                     if (didScroll) {{ 
+                        didScroll = false; 
+                        var rect = main_el.getBoundingClientRect(); 
+                        if (rect.top <= (window.innerHeight || document.documentElement.clientHeight)/2) {{ 
+                          showStarted = true; 
+                          window.clearInterval(intervalID);
+                          {actions};
+                        }}
+                     }}
+                   }};
+                   evHdl(window,"scroll",function() {{ didScroll = true; }}); 
+                   intervalID = window.setInterval(function() {{ if (didScroll) {{ checkAnimation(); }} }}, 500);
+                """.format(prefix=prefix,
+                           actions=actions)
                 
     for id in [id for (id,_) in ids if id in instructions and not id.startswith("__")]:
         ###print "checking id = {}".format(id)
@@ -190,10 +212,10 @@ var remC=function(el,c) {
                 
 
     if noload:
-        script_base = """(function() {{ {setup}{creates}{bind_ids}{setup_click}{setup_hover}{setup_hover_start}{setup_hover_end}{setup_select}{init} }})();"""
+        script_base = """(function() {{ {setup}{creates}{bind_ids}{setup_click}{setup_hover}{setup_hover_start}{setup_hover_end}{setup_select}{init}{show} }})();"""
     else:
         # may fail on IE -- use noload
-        script_base = """window.addEventListener(\"load\",function() {{ \n {setup}{creates}{bind_ids}{setup_click}{setup_hover}{setup_hover_start}{setup_hover_end}{setup_select} }});\n"""
+        script_base = """window.addEventListener(\"load\",function() {{ \n {setup}{creates}{bind_ids}{setup_click}{setup_hover}{setup_hover_start}{setup_hover_end}{setup_select}{init}{show} }});\n"""
     script = script_base.format(bind_ids = bind_ids,
                                 setup=setup,
                                 creates=creates,
@@ -202,7 +224,8 @@ var remC=function(el,c) {
                                 setup_hover_start=setup_hover_start,
                                 setup_hover_end=setup_hover_end,
                                 setup_select=setup_select,
-                                init=init)
+                                init=init,
+                                show=show)
     if frame:
         output += "<html><body>"
 
