@@ -274,6 +274,15 @@ function setupSVG (data) {
 
     
 function testInteractive () {
+
+    var client_height = $(window).height();
+    var client_width = $(window).width();
+
+    var widthPerc = Math.round((100 * client_height * parseFloat(GLOBAL.original_width))/
+                                 (parseFloat(GLOBAL.original_height) * client_width));
+
+    console.log("widthPerc = ",widthPerc);
+
     var w = window.open("about:blank", "compiled_svg");
     var formData = new FormData();
     formData.append("svg",$("#svg").html());
@@ -284,6 +293,7 @@ function testInteractive () {
     formData.append("oh",GLOBAL.original_height);
     formData.append("frame","true");
     formData.append("minimize","false");
+    formData.append("widthPerc",widthPerc.toString());
     var xhr = new XMLHttpRequest();
     xhr.open("POST","/compile_svg");
     xhr.onload = (function(w) { return function() { 
@@ -307,6 +317,7 @@ function exportInteractive () {
     formData.append("oh",GLOBAL.original_height);
     formData.append("frame","false");
     formData.append("minimize","true");
+    formData.append("widthPerc","100");
     var xhr = new XMLHttpRequest();
     xhr.open("POST","/compile_svg");
     xhr.onload = function () { 

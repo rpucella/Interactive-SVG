@@ -254,6 +254,12 @@ def POST_compile_svg ():
     oh = request.forms.get("oh")
     frame = request.forms.get("frame")
     minimize = request.forms.get("minimize")
+    widthPerc = request.forms.get("widthPerc")
+
+    try:
+        widthPerc = int(widthPerc)
+    except:
+        widthPerc = 100
 
     svg_tree = ET.fromstring(svg)
     instructions = compile.parse_instructions(instr)
@@ -265,7 +271,7 @@ def POST_compile_svg ():
             "width":ow,
             "height":oh}
 
-    result = compile.compile (svg_tree,instructions,size=size,frame=frame,noload=True,minimizeScript=minimize)
+    result = compile.compile (svg_tree,instructions,size=size,frame=frame,noload=True,minimizeScript=minimize,widthPerc=widthPerc)
 
     return result
 

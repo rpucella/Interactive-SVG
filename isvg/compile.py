@@ -25,7 +25,7 @@ def verbose (msg):
 xmlns_svg = "http://www.w3.org/2000/svg"
 xmlns_xlink = "http://www.w3.org/1999/xlink"
 
-def compile (svg, instructions,size=None,frame=False,noload=True,minimizeScript=False):
+def compile (svg, instructions,size=None,frame=False,noload=True,minimizeScript=False,widthPerc=100):
     ns = {"svg":"http://www.w3.org/2000/svg",
           "xlink":"http://www.w3.org/1999/xlink"}
     if svg.tag != "svg" and svg.tag != "{{{}}}svg".format(xmlns_svg):
@@ -238,7 +238,7 @@ var remC=function(el,c) {
         padding = 0
     ## Fix to allow resizing on most browsers (mostly need to fix IE11+)
     ##output +=  """<div id="{}___main_div" style="position: relative; left: 0px; top:0px;">""".format(prefix)
-    output +=  """<div id="{}___main_div" style="position: relative; left: 0px; top:0px; height:0; width: 100%; padding-top: {}%;">""".format(prefix,padding)
+    output +=  """<div id="{}___main_div" style="position: relative; left: 0px; top:0px; height:0; width: {}%; padding-top: {}%;">""".format(prefix,widthPerc,padding)
 
     # suppress namespace for svg
     ET.register_namespace('',xmlns_svg)
