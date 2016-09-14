@@ -230,7 +230,7 @@ var remC=function(el,c) {
         output += "<html><body>"
 
     def clean_dim (dim):
-        return int(dim.replace("px",""))
+        return int(float(dim.replace("px","")))
 
     if size:
         padding = int(1+100*float(clean_dim(size["height"]))/float(clean_dim(size["width"])))
@@ -592,7 +592,7 @@ def fix_fonts (svg,target):
     fontedElts = [elt for elt in svg.findall(".//*[@font-family]")]
     for elt in fontedElts:
         if elt.get("font-family") not in target:  # check
-            if "-Bd" not in elt.get("font-family").lower():
+            if "-bd" not in elt.get("font-family").lower():
                 elt.set("font-family",target)
             else:
                 elt.set("font-family",target)

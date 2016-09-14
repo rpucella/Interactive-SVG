@@ -90,12 +90,22 @@ def POST_upload_svg ():
 
     print "file = ", request.files.get("file")
 
+    ox = request.forms.get("ox")
+    oy = request.forms.get("oy")
+    ow = request.forms.get("ow")
+    oh = request.forms.get("oh")
+
     upload = request.files.get("file")
     tree = ET.parse(upload.file)
     svg = tree.getroot()
 
     svg = compile.fix_fonts(svg,"sans-serif")
 
+    svg.attrib["x"] = ox
+    svg.attrib["y"] = oy
+    svg.attrib["width"] = ow
+    svg.attrib["height"] = oh
+    
     result = process_svg(svg)
 
     # read instructions from input if it exists

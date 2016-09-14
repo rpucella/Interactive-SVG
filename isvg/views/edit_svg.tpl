@@ -159,6 +159,10 @@ function changeFontsToSansSerif () {
     var blob = new Blob([svg_code], { type: "text/xml"});
 
     data.append("file",blob);
+    data.append("ox",GLOBAL.original_x);
+    data.append("oy",GLOBAL.original_y);
+    data.append("ow",GLOBAL.original_width);
+    data.append("oh",GLOBAL.original_height);
     
     //console.log(files[0]);
     //console.log(data);
