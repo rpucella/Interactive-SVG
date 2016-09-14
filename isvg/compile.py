@@ -6,7 +6,7 @@
 import sys
 import xml.etree.ElementTree as ET
 import json
-# import re
+import re
 
 import uuid
 
@@ -25,7 +25,7 @@ def verbose (msg):
 xmlns_svg = "http://www.w3.org/2000/svg"
 xmlns_xlink = "http://www.w3.org/1999/xlink"
 
-def compile (svg, instructions,size=None,frame=False,noload=True):
+def compile (svg, instructions,size=None,frame=False,noload=True,minimizeScript=False):
     ns = {"svg":"http://www.w3.org/2000/svg",
           "xlink":"http://www.w3.org/1999/xlink"}
     if svg.tag != "svg" and svg.tag != "{{{}}}svg".format(xmlns_svg):
@@ -258,11 +258,16 @@ var remC=function(el,c) {
         delete_svg_attrib("width")
         svg.attrib["viewBox"] = "0 0 {} {}".format(clean_dim(size["width"]),clean_dim(size["height"]))
         svg.attrib["style"] = "position: absolute; top:0; left:0;" 
+
         
 
     if styling:
         output += """<style>{}</style>""".format(styling);
     output += ET.tostring(svg)
+
+    if minimizeScript:
+        script = minimize(script)
+
     output += "<script>"
     output += script
     output += "</script>"
@@ -271,6 +276,11 @@ var remC=function(el,c) {
         output += "</body></html>"
 
     return output
+
+
+def minimize (inp):
+
+    return re.sub("\s+"," ",inp).strip()
 
 
 
@@ -603,3 +613,4 @@ def fix_fonts (svg,target):
     return svg
 
     
+

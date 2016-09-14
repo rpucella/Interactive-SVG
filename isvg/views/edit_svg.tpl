@@ -283,6 +283,7 @@ function testInteractive () {
     formData.append("ow",GLOBAL.original_width);
     formData.append("oh",GLOBAL.original_height);
     formData.append("frame","true");
+    formData.append("minimize","false");
     var xhr = new XMLHttpRequest();
     xhr.open("POST","/compile_svg");
     xhr.onload = (function(w) { return function() { 
@@ -305,6 +306,7 @@ function exportInteractive () {
     formData.append("ow",GLOBAL.original_width);
     formData.append("oh",GLOBAL.original_height);
     formData.append("frame","false");
+    formData.append("minimize","true");
     var xhr = new XMLHttpRequest();
     xhr.open("POST","/compile_svg");
     xhr.onload = function () { 

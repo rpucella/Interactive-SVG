@@ -253,17 +253,19 @@ def POST_compile_svg ():
     ow = request.forms.get("ow")
     oh = request.forms.get("oh")
     frame = request.forms.get("frame")
+    minimize = request.forms.get("minimize")
 
     svg_tree = ET.fromstring(svg)
     instructions = compile.parse_instructions(instr)
     frame = True if frame == "true" else False
+    minimize = True if minimize == "true" else False
 
     size = {"x":ox,
-             "y":oy,
-             "width":ow,
-             "height":oh}
+            "y":oy,
+            "width":ow,
+            "height":oh}
 
-    result = compile.compile (svg_tree,instructions,size=size,frame=frame,noload=True)
+    result = compile.compile (svg_tree,instructions,size=size,frame=frame,noload=True,minimizeScript=minimize)
 
     return result
 
