@@ -27,19 +27,20 @@ import json
 
 
 @get("/")
-@get("/upload_svg")
+@get("/isvg")
+@get("/isvg/")
 def GET_root ():
 
-    redirect("/edit_svg")
+    redirect("/isvg/edit_svg")
 
     
-@get("/create_svg")
+@get("/isvg/create_svg")
 def GET_chart ():
 
     return static_file("test_create.html","static")
 
 
-@get("/edit_svg")
+@get("/isvg/edit_svg")
 def GET_edit_svg ():
 
     return template("edit_svg",
@@ -49,7 +50,7 @@ def GET_edit_svg ():
                     svg_data = "{}")
 
 
-@post("/upload_svg")
+@post("/isvg/api/upload_svg")
 def POST_upload_svg ():
     # called by SVG editor when submitting a SVG for upload
 
@@ -84,7 +85,7 @@ def POST_upload_svg ():
 
 
 
-@post("/fix_fonts_svg")
+@post("/isvg/api/fix_fonts_svg")
 def POST_upload_svg ():
     # called by SVG editor when submitting a SVG for upload
 
@@ -174,7 +175,7 @@ def process_svg (svg):
             "ids": [ id for (id,_) in ids]}
 
     
-@post("/edit_svg")
+@post("/isvg/api/edit_svg")
 def POST_edit_svg ():
     # Called by external routines that _create_ svgs for editing
 
@@ -242,7 +243,7 @@ def POST_edit_svg ():
 
 
 
-@post("/compile_svg")
+@post("/isvg/api/compile_svg")
 def POST_compile_svg ():
     # called by SVG editor when asked to compile an SVG + a script
 

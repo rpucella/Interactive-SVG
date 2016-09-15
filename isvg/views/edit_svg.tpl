@@ -168,7 +168,7 @@ function changeFontsToSansSerif () {
     //console.log(data);
     
     $.ajax({
-	url: "/fix_fonts_svg",
+	url: "/isvg/api/fix_fonts_svg",
 	type: "POST",
 	data: data,
 	cache: false,
@@ -215,7 +215,7 @@ function uploadSVG () {
     //console.log(data);
     
     $.ajax({
-	url: "/upload_svg",
+	url: "/isvg/api/upload_svg",
 	type: "POST",
 	data: data,
 	cache: false,
@@ -295,7 +295,7 @@ function testInteractive () {
     formData.append("minimize","false");
     formData.append("widthPerc",widthPerc.toString());
     var xhr = new XMLHttpRequest();
-    xhr.open("POST","/compile_svg");
+    xhr.open("POST","/isvg/api/compile_svg");
     xhr.onload = (function(w) { return function() { 
 	if (xhr.status === 200) {
 	    w.document.write(xhr.responseText);
@@ -319,7 +319,7 @@ function exportInteractive () {
     formData.append("minimize","true");
     formData.append("widthPerc","100");
     var xhr = new XMLHttpRequest();
-    xhr.open("POST","/compile_svg");
+    xhr.open("POST","/isvg/api/compile_svg");
     xhr.onload = function () { 
 	if (xhr.status === 200) {
 
