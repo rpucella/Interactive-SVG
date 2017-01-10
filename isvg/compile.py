@@ -25,7 +25,7 @@ def verbose (msg):
 xmlns_svg = "http://www.w3.org/2000/svg"
 xmlns_xlink = "http://www.w3.org/1999/xlink"
 
-def compile (svg, instructions,size=None,frame=False,noload=True,minimizeScript=False,widthPerc=100):
+def compile (svg, instructions,size=None,frame=False,noload=True,minimizeScript=False,widthPerc=100,ajax=False,svgout=None):
     ns = {"svg":"http://www.w3.org/2000/svg",
           "xlink":"http://www.w3.org/1999/xlink"}
     if svg.tag != "svg" and svg.tag != "{{{}}}svg".format(xmlns_svg):
@@ -211,12 +211,15 @@ var remC=function(el,c) {
                 setup_select += """evHdl(e("{prefix}_{id}"),"change",function() {{ \n ({{ \n{change_code} \n }}[this.value])(); \n}});\n""".format(change_code=change_code,prefix=prefix,id=id)
                 
 
-    if noload:
-        script_base = """(function() {{ {setup}{creates}{bind_ids}{setup_click}{setup_hover}{setup_hover_start}{setup_hover_end}{setup_select}{init}{show} }})();"""
-    else:
-        # may fail on IE -- use noload
-        script_base = """window.addEventListener(\"load\",function() {{ \n {setup}{creates}{bind_ids}{setup_click}{setup_hover}{setup_hover_start}{setup_hover_end}{setup_select}{init}{show} }});\n"""
-    script = script_base.format(bind_ids = bind_ids,
+    # if noload:
+    #     script_base = """(function() {{ {setup}{creates}{bind_ids}{setup_click}{setup_hover}{setup_hover_start}{setup_hover_end}{setup_select}{init}{show} }})();"""
+    # else:
+    #     # may fail on IE -- use noload
+    #     script_base = """window.addEventListener(\"load\",function() {{ \n {setup}{creates}{bind_ids}{setup_click}{setup_hover}{setup_hover_start}{setup_hover_end}{setup_select}{init}{show} }});\n"""
+
+    script_base = """var run_{prefix} = function() {{ {setup}{creates}{bind_ids}{setup_click}{setup_hover}{setup_hover_start}{setup_hover_end}{setup_select}{init}{show} }};\n"""
+    script = script_base.format(prefix=prefix,
+                                bind_ids = bind_ids,
                                 setup=setup,
                                 creates=creates,
                                 setup_click=setup_click,
@@ -226,8 +229,9 @@ var remC=function(el,c) {
                                 setup_select=setup_select,
                                 init=init,
                                 show=show)
+
     if frame:
-        output += "<html><body>"
+        output += """<html><body><div style="width:500px; margin: 0px auto;">"""
 
     def clean_dim (dim):
         return int(float(dim.replace("px","")))
@@ -263,17 +267,50 @@ var remC=function(el,c) {
 
     if styling:
         output += """<style>{}</style>""".format(styling);
-    output += ET.tostring(svg)
+
+    if not ajax:
+        output += ET.tostring(svg)
+    else:
+        fname = svgout if svgout else "image_{}.svg".format(prefix)
+        with open(fname,"wb") as fout:
+            fout.write(ET.tostring(svg))
 
     if minimizeScript:
         script = minimize(script)
 
     output += "<script>"
     output += script
+    if ajax:
+        output += """
+         (function() {{
+           xhr = new XMLHttpRequest();
+           xhr.open("GET","{fname}",true);
+           // Following line is just to be on the safe side;
+           // not needed if your server delivers SVG with correct MIME type
+           xhr.overrideMimeType("image/svg+xml");
+           xhr.onload = function(e) {{
+             if (xhr.readyState === 4) {{
+               if (xhr.status === 200) {{
+                 var elt = document.importNode(xhr.responseXML.documentElement,true);
+                 document.getElementById("{prefix}___main_div")
+                         .appendChild(elt);
+                 run_{prefix}();
+               }} else {{
+                 console.error(xhr.statusText);
+               }}
+             }}
+           }};
+           xhr.onerror = function(e) {{
+             console.error(xhr.statusText);
+           }};
+           xhr.send(null);
+         }})();""".format(prefix=prefix,fname=fname)
+    else:
+        output += """(function() {{ run_{}(); }})();""".format(prefix)
     output += "</script>"
     output += "</div>"
     if frame:
-        output += "</body></html>"
+        output += "</div></body></html>"
 
     return output
 

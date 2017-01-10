@@ -13,7 +13,7 @@ def show_available_ids (ids):
         verbose("No available IDs")
 
 
-def main (svgfile, insfile,frame,noload):
+def main (svgfile, insfile,frame,noload,ajax):
 
     set_verbose_flag(True)
 
@@ -40,7 +40,7 @@ def main (svgfile, insfile,frame,noload):
         verbose("Reading interaction instructions [{}]".format(insfile))
         instr = load_instructions(insfile)
 
-        output = compile(svg,instr,size=size,frame=frame,noload=noload)
+        output = compile(svg,instr,size=size,frame=frame,noload=noload,ajax=ajax)
         print output
 
     else:
@@ -54,7 +54,7 @@ def main (svgfile, insfile,frame,noload):
                     instr_string = ""
                 elif line.strip() == "-->":
                     instr = parse_instructions(instr_string)
-                    output = compile(svg,instr,size=size,frame=frame,noload=noload)
+                    output = compile(svg,instr,size=size,frame=frame,noload=noload,ajax=ajax)
                     print output
                     return
                 elif instr_string is not None: 
@@ -64,11 +64,12 @@ def main (svgfile, insfile,frame,noload):
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
-        print "Usage: isvg <svg> [<instructions>] [-frame] [-noload]"
+        print "Usage: isvg <svg> [<instructions>] [-frame] [-noload] [-ajax]"
     else:
         main(sys.argv[1],
              sys.argv[2] if len(sys.argv)>2 else None,
              len(sys.argv)>3 and "-frame" in sys.argv[3:],
-             len(sys.argv)>3 and "-noload" in sys.argv[3:])
+             len(sys.argv)>3 and "-noload" in sys.argv[3:],
+             len(sys.argv)>3 and "-ajax" in sys.argv[3:])
 else:
     print "(loaded)"
