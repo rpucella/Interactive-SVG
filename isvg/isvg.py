@@ -1,6 +1,7 @@
 
 from compile import *
 
+import optparse
 
 
 def show_available_ids (ids):
@@ -13,13 +14,19 @@ def show_available_ids (ids):
         verbose("No available IDs")
 
 
-def main (svgfile, insfile,frame,noload,ajax):
+def main (svgfile, insfile,frame,load,ajax,fixfonts):
+
+    #  !!
+    noload = not load
 
     set_verbose_flag(True)
 
     verbose("Reading SVG [{}]".format(svgfile))
     tree = ET.parse(svgfile)
     svg = tree.getroot()
+
+    if fixfonts:
+        svg = fix_fonts(svg,"sans-serif")
 
     original_x = svg.attrib["x"] if "x" in svg.attrib else "0"
     original_y = svg.attrib["y"] if "y" in svg.attrib else "0"
@@ -40,7 +47,7 @@ def main (svgfile, insfile,frame,noload,ajax):
         verbose("Reading interaction instructions [{}]".format(insfile))
         instr = load_instructions(insfile)
 
-        output = compile(svg,instr,size=size,frame=frame,noload=noload,ajax=ajax)
+        output = compile(svg,instr,size=size,frame=frame,noload=noload,ajax=ajax,minimizeScript=True)
         print output
 
     else:
@@ -54,7 +61,7 @@ def main (svgfile, insfile,frame,noload,ajax):
                     instr_string = ""
                 elif line.strip() == "-->":
                     instr = parse_instructions(instr_string)
-                    output = compile(svg,instr,size=size,frame=frame,noload=noload,ajax=ajax)
+                    output = compile(svg,instr,size=size,frame=frame,noload=noload,ajax=ajax,minimizeScript=True)
                     print output
                     return
                 elif instr_string is not None: 
@@ -63,13 +70,20 @@ def main (svgfile, insfile,frame,noload,ajax):
 
 
 if __name__ == "__main__":
-    if len(sys.argv) < 2:
-        print "Usage: isvg <svg> [<instructions>] [-frame] [-noload] [-ajax]"
+    parser = optparse.OptionParser(usage="%prog [options] <svg> [<instructions>]")
+    parser.add_option("--frame", dest="frame", action="store_true", default=False)
+    parser.add_option("--onload", dest="onload", action="store_true", default=False)
+    parser.add_option("--fixfonts", dest="fixfonts", action="store_true", default=False)
+    parser.add_option("--ajax", dest="ajax", action="store")
+    options, positional = parser.parse_args()
+    if len(positional) > 0: 
+        main(positional[0],
+             positional[1] if len(positional)>1 else None,
+             options.frame,
+             options.onload,
+             options.ajax,
+             options.fixfonts)
     else:
-        main(sys.argv[1],
-             sys.argv[2] if len(sys.argv)>2 else None,
-             len(sys.argv)>3 and "-frame" in sys.argv[3:],
-             len(sys.argv)>3 and "-noload" in sys.argv[3:],
-             len(sys.argv)>3 and "-ajax" in sys.argv[3:])
+        parser.error("SVG file required")
 else:
     print "(loaded)"

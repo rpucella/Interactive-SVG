@@ -86,7 +86,7 @@ def POST_upload_svg ():
 
 
 @post("/isvg/api/fix_fonts_svg")
-def POST_upload_svg ():
+def POST_fix_fonts ():
     # called by SVG editor when submitting a SVG for upload
 
     print "file = ", request.files.get("file")

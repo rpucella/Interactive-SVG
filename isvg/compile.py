@@ -25,7 +25,7 @@ def verbose (msg):
 xmlns_svg = "http://www.w3.org/2000/svg"
 xmlns_xlink = "http://www.w3.org/1999/xlink"
 
-def compile (svg, instructions,size=None,frame=False,noload=True,minimizeScript=False,widthPerc=100,ajax=False,svgout=None):
+def compile (svg, instructions,size=None,frame=False,noload=True,minimizeScript=False,widthPerc=100,ajax=None):
     ns = {"svg":"http://www.w3.org/2000/svg",
           "xlink":"http://www.w3.org/1999/xlink"}
     if svg.tag != "svg" and svg.tag != "{{{}}}svg".format(xmlns_svg):
@@ -271,17 +271,20 @@ var remC=function(el,c) {
     if not ajax:
         output += ET.tostring(svg)
     else:
-        fname = svgout if svgout else "image_{}.svg".format(prefix)
-        with open(fname,"wb") as fout:
+        fname_svg = "{}.svg".format(ajax)
+        with open(fname_svg,"wb") as fout:
             fout.write(ET.tostring(svg))
 
     if minimizeScript:
         script = minimize(script)
 
-    output += "<script>"
-    output += script
     if ajax:
-        output += """
+        fname_js = "{}.js".format(ajax)
+        with open(fname_js,"wb") as fout:
+            fout.write(script)
+
+        output += """<script src="{}"></script>""".format(fname_js)
+        output += """<script>
          (function() {{
            xhr = new XMLHttpRequest();
            xhr.open("GET","{fname}",true);
@@ -304,11 +307,16 @@ var remC=function(el,c) {
              console.error(xhr.statusText);
            }};
            xhr.send(null);
-         }})();""".format(prefix=prefix,fname=fname)
+         }})();
+         </script>""".format(prefix=prefix,fname=fname_svg)
     else:
+        output += "<script>"
+        output += script
         output += """(function() {{ run_{}(); }})();""".format(prefix)
-    output += "</script>"
+        output += "</script>"
+
     output += "</div>"
+
     if frame:
         output += "</div></body></html>"
 
@@ -639,11 +647,14 @@ def fix_fonts (svg,target):
     fontedElts = [elt for elt in svg.findall(".//*[@font-family]")]
     for elt in fontedElts:
         if elt.get("font-family") not in target:  # check
-            if "-bd" not in elt.get("font-family").lower():
-                elt.set("font-family",target)
-            else:
+            if "-bd" in elt.get("font-family").lower():
                 elt.set("font-family",target)
                 elt.set("font-weight","bold")
+            elif "-boldmt" in elt.get("font-family").lower():
+                elt.set("font-family",target)
+                elt.set("font-weight","bold")
+            else: 
+                elt.set("font-family",target)
     # supposedly, the above does the modification in-place in the svg
     # (each element remembers where it came from? An element is just a reference to 
     #  an svg location?)
