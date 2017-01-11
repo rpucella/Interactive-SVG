@@ -25,6 +25,17 @@ def verbose (msg):
 xmlns_svg = "http://www.w3.org/2000/svg"
 xmlns_xlink = "http://www.w3.org/1999/xlink"
 
+
+import datetime
+
+def tag ():
+    year = datetime.datetime.now().year
+    epoch = datetime.datetime(year,1,1)
+    dt = datetime.datetime.now()
+    secs = (dt - epoch).total_seconds()
+    return str(int(secs))
+
+
 def compile (svg, instructions,size=None,frame=False,noload=True,minimizeScript=False,widthPerc=100,ajax=None):
     ns = {"svg":"http://www.w3.org/2000/svg",
           "xlink":"http://www.w3.org/1999/xlink"}
@@ -45,7 +56,8 @@ def compile (svg, instructions,size=None,frame=False,noload=True,minimizeScript=
     # instr = parse_instructions(instructions)
     
     # generate uuid
-    uid = uuid.uuid4().hex
+    # uid = uuid.uuid4().hex
+    uid = tag()
     verbose("UUID {}".format(uid))
 
     ##print "USE="
@@ -57,12 +69,12 @@ def compile (svg, instructions,size=None,frame=False,noload=True,minimizeScript=
     ##    print x
     ##    print x.attrib
     
-    prefix = "FM_{}".format(uid)
+    prefix = "FM{}".format(uid)
     prefix_all_ids(svg,prefix)
     
     # should do some sort of validation here -- don't bother for now
     # should probably rename the ids to something JS-friendly
-    verbose("Generating output HTML")
+    verbose("Generating output")
     ## init_shown_ids = instructions["_init"] if "_init" in instructions else []
 
     output = ""
@@ -77,7 +89,7 @@ var e=function(i) {
 };
 
 var s=function(i) {
-  i.setAttribute("display","display");
+  i.setAttribute("display","inline");
   i.setAttribute("opacity","1");
   i.FM_active=true;
 };
@@ -87,7 +99,7 @@ var h=function(i) {
 };
 
 var d=function(i) {
-  i.setAttribute("display","display");
+  i.setAttribute("display","inline");
   i.setAttribute("opacity","0.25");
   i.FM_active=false;
 }; 
@@ -272,6 +284,7 @@ var remC=function(el,c) {
         output += ET.tostring(svg)
     else:
         fname_svg = "{}.svg".format(ajax)
+        print "Saving SVG file [{}]".format(fname_svg)
         with open(fname_svg,"wb") as fout:
             fout.write(ET.tostring(svg))
 
@@ -280,6 +293,7 @@ var remC=function(el,c) {
 
     if ajax:
         fname_js = "{}.js".format(ajax)
+        print "Saving JS file [{}]".format(fname_js)
         with open(fname_js,"wb") as fout:
             fout.write(script)
 
@@ -288,8 +302,6 @@ var remC=function(el,c) {
          (function() {{
            xhr = new XMLHttpRequest();
            xhr.open("GET","{fname}",true);
-           // Following line is just to be on the safe side;
-           // not needed if your server delivers SVG with correct MIME type
            xhr.overrideMimeType("image/svg+xml");
            xhr.onload = function(e) {{
              if (xhr.readyState === 4) {{
@@ -488,8 +500,8 @@ def parse_instructions (instrs_string):
 
     # always have a __create
     instrs["__create"] = []
-    instrs["__init"] = []
-    instrs["__show"] = []
+    # instrs["__init"] = []
+    # instrs["__show"] = []
 
     for instr in instructions:
         parts = split_at_arrows(instr)
@@ -547,10 +559,18 @@ def parse_define (create, instrs):
 
 
 def parse_init (actions_parts,instrs):
-    instrs["__init"].extend([ parse_action(part) for part in actions_parts])
+    act = [ parse_action(part) for part in actions_parts]
+    if "__init" in instrs:
+        instrs["__init"].extend(act)
+    else:
+        instrs["__init"] = act
     
 def parse_show (actions_parts,instrs):
-    instrs["__show"].extend([ parse_action(part) for part in actions_parts])
+    act = [ parse_action(part) for part in actions_parts]
+    if "__show" in instrs:
+        instrs["__show"].extend(act)
+    else:
+        instrs["__show"] = act
         
 
 def split_at_arrows (lst):
@@ -604,7 +624,11 @@ def parse_event (p):
 def parse_action (s):
     # p = tokenize(s)
     p = s
-    if len(p) > 0 and p[0] in ["show","hide","dim","apply","remove"]:
+    if len(p) > 0 and p[0] in ["show","hide","dim","apply","remove","js"]:
+        # print "action = ",p[0]
+        # print "elements = "
+        # for x in p[1:]:
+        #     print "  ",x
         return {"action":p[0],
                 "elements":p[1:]}
     if len(p) > 2 and p[0] == "fadein":

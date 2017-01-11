@@ -48,7 +48,13 @@ def main (svgfile, insfile,frame,load,ajax,fixfonts):
         instr = load_instructions(insfile)
 
         output = compile(svg,instr,size=size,frame=frame,noload=noload,ajax=ajax,minimizeScript=True)
-        print output
+        if ajax:
+            fname_html = "{}.html".format(ajax)
+            print "Saving HTML file [{}]".format(fname_html)
+            with open(fname_html,"wb") as fout:
+                fout.write(output)
+        else:
+            print output
 
     else:
         #check to see if we can read it from the SVG itself
@@ -62,7 +68,13 @@ def main (svgfile, insfile,frame,load,ajax,fixfonts):
                 elif line.strip() == "-->":
                     instr = parse_instructions(instr_string)
                     output = compile(svg,instr,size=size,frame=frame,noload=noload,ajax=ajax,minimizeScript=True)
-                    print output
+                    if ajax:
+                        fname_html = "{}.html".format(ajax)
+                        print "Saving HTML file [{}]".format(fname_html)
+                        with open(fname_html,"wb") as fout:
+                            fout.write(output)
+                    else:
+                        print output
                     return
                 elif instr_string is not None: 
                     instr_string += line
