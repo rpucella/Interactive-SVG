@@ -398,6 +398,11 @@ def compile_action (act,prefix=None):
         t = act["time"]
         subact = compile_action(act["delayed_action"],prefix)
         return """window.setTimeout(function() {{ {act} }}, {t});\n""".format(act=subact,t=t)
+    elif act["action"] == "js":
+        if prefix:
+            return """(function(prefix) {{ {} }})("{}");""".format(act["elements"][0],prefix)
+        else:
+            return act["elements"][0]
     else:
         return ""
 
