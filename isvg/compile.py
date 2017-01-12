@@ -243,7 +243,7 @@ var remC=function(el,c) {
                                 show=show)
 
     if frame:
-        output += """<html><body><div style="width:500px; margin: 0px auto;">"""
+        output += """<html><body><div style="width:600px; margin: 0px auto;">"""
 
     def clean_dim (dim):
         return int(float(dim.replace("px","")))

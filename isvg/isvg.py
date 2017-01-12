@@ -26,7 +26,7 @@ def main (svgfile, insfile,frame,load,ajax,fixfonts):
     svg = tree.getroot()
 
     if fixfonts:
-        svg = fix_fonts(svg,"sans-serif")
+        svg = fix_fonts(svg,"Arial,sans-serif")
 
     original_x = svg.attrib["x"] if "x" in svg.attrib else "0"
     original_y = svg.attrib["y"] if "y" in svg.attrib else "0"
