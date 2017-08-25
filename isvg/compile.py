@@ -155,6 +155,7 @@ var remC=function(el,c) {
 
     styling = ""
 
+    vars = ""
     creates = ""
     if "__create" in instructions:
         for c in instructions["__create"]:
@@ -164,6 +165,8 @@ var remC=function(el,c) {
                 ids.append((c[1],None))
             elif c[0] == "style":
                 styling += """.{prefix}_{name} {{\n  {body}\n  }}\n """.format(prefix=prefix,name=clean_id(c[1]),body=c[2])
+            elif c[0] == "variable":
+                vars += "".join([ """var {p}_{n} = 0;""".format(p=prefix,n=n) for n in c[1:]])
 
 
     init = ""
@@ -202,26 +205,31 @@ var remC=function(el,c) {
         # clean ID that can be used in identifiers
         cid = clean_id(id)
         for event in instructions[id]:
+
             ###print "  checking event = {}".format(event)
+
             if event == "click":
                 actions = "".join([ compile_action(act,prefix) for act in instructions[id]["click"] ])
                 setup_click += "evHdl(FM_{id},\"click\",function() {{\n  if (this.FM_active) {{ \n {actions} \n }} \n}});\n".format(id=cid,actions=actions)
                 setup_click += "FM_{id}.style.cursor=\"pointer\";".format(id=cid);
+
             elif event == "hover":
                 do_actions = "".join([ save_action(i,act)+compile_action(act,prefix) for (i,act) in enumerate(instructions[id]["hover"])] )
                 undo_actions = "".join(reversed([ restore_action(i,act) for (i,act) in enumerate(instructions[id]["hover"]) ]))
                 setup_hover += "evHdl(FM_{id},\"mouseenter\",function() {{ \n if (this.FM_active) {{ \n {do_actions} \n }} \n}}); \n evHdl(FM_{id},\"mouseleave\",function() {{ \n if (this.FM_active) {{ \n {undo_actions} \n }} \n}});\n".format(id=cid,do_actions=do_actions,undo_actions=undo_actions)
+
             elif event == "hover-start":
                 do_actions = "".join([ compile_action(act,prefix) for act in instructions[id]["hover-start"] ])
                 setup_hover_start += "evHdl(FM_{id},\"mouseenter\",function() {{ \n if (this.FM_active) {{ \n {do_actions} \n }} \n}});\n".format(id=cid,do_actions=do_actions)
+
             elif event == "hover-end":
                 do_actions = "".join([ compile_action(act,prefix) for act in instructions[id]["hover-end"] ])
                 setup_hover_end += "evHdl(FM_{id},\"mouseleave\",function() {{ \n if (this.FM_active) {{ \n {do_actions} \n }} \n}});\n".format(id=cid,do_actions=do_actions)
+
             elif event == "select":
                 change_code = ",".join([ """ "{value}" : function() {{ {actions} }} """.format(value=v,
                                                                                                actions="".join([ compile_action(act,prefix) for act in instructions[id]["select"][v]])) for v in instructions[id]["select"].keys()])
                 setup_select += """evHdl(e("{prefix}_{id}"),"change",function() {{ \n ({{ \n{change_code} \n }}[this.value])(); \n}});\n""".format(change_code=change_code,prefix=prefix,id=id)
-                
 
     # if noload:
     #     script_base = """(function() {{ {setup}{creates}{bind_ids}{setup_click}{setup_hover}{setup_hover_start}{setup_hover_end}{setup_select}{init}{show} }})();"""
@@ -229,8 +237,9 @@ var remC=function(el,c) {
     #     # may fail on IE -- use noload
     #     script_base = """window.addEventListener(\"load\",function() {{ \n {setup}{creates}{bind_ids}{setup_click}{setup_hover}{setup_hover_start}{setup_hover_end}{setup_select}{init}{show} }});\n"""
 
-    script_base = """var run_{prefix} = function() {{ {setup}{creates}{bind_ids}{setup_click}{setup_hover}{setup_hover_start}{setup_hover_end}{setup_select}{init}{show} }};\n"""
-    script = script_base.format(prefix=prefix,
+    script_base = """var run_{prefix} = function() {{ {vars}{setup}{creates}{bind_ids}{setup_click}{setup_hover}{setup_hover_start}{setup_hover_end}{setup_select}{init}{show} }};\n"""
+    script = script_base.format(vars=vars,
+                                prefix=prefix,
                                 bind_ids = bind_ids,
                                 setup=setup,
                                 creates=creates,
@@ -403,6 +412,14 @@ def compile_action (act,prefix=None):
             return """(function(prefix) {{ {} }})("{}");""".format(act["elements"][0],prefix)
         else:
             return act["elements"][0]
+        
+    elif act["action"] == "set":
+        return "{p}_{n} = {v}".format(p=prefix,n=act["variable"],v=act["value"])
+
+    elif act["action"] == "ifzero":
+        subact = compile_action(act["conditional_action"],prefix)
+        return "if ({p}_{n} == 0) {{ {c} }};".format(p=prefix,n=act["variable"],c=subact)
+    
     else:
         return ""
 
@@ -559,6 +576,8 @@ def parse_define (create, instrs):
     
     if len(create) > 3 and create[1] == "style":
         instrs["__create"].append(create[1:])
+    elif len(create) > 3 and create[1] == "variable":
+        instrs["__create"].append(create[1:])
     else:
         verbose("Ignoring unrecognized define instruction: {}".format(" ".join(create)))
 
@@ -636,6 +655,15 @@ def parse_action (s):
         #     print "  ",x
         return {"action":p[0],
                 "elements":p[1:]}
+    if len(p) > 2 and p[0] == "set":
+        return {"action":p[0],
+                "variable":p[1],
+                "value":p[2]}
+    if len(p) > 2 and p[0] == "ifzero":
+        return {"action":p[0],
+                "variable":p[1],
+                "conditional_action":parse_action(s[2:])}
+    
     if len(p) > 2 and p[0] == "fadein":
         return {"action":p[0],
                 "time":int(p[1]),
