@@ -1,6 +1,6 @@
 # Interactive SVG
 
-A small tool that lets you write interactive SVGs, that is, SVGs embeddable on a web page with some attached JS code that will react to click events on thy de SVG and modify. Not terribly deeply developed or flexible, but it works.
+A small tool that lets you write interactive SVGs, that is, SVGs embeddable on a web page with some attached JS code that will react to click events on the SVG and modify it. Not terribly deeply developed or flexible, but it works.
 
 
 ## To install
